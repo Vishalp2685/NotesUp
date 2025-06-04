@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NotesHub</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body, .hero-title, .section-title, .cta-section h2, .feature-card, .card, .chat-header, .cta-btn, .upload-btn {
+            font-family: 'Manrope', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-particles"></div>
+    {% include 'nav.html' %}
+
+    <main class="landing" id="landing">
+        <section class="hero-section">
+            <div class="hero-content">
+                <h1 class="hero-title">Welcome to NotesHub</h1>
+                <p class="hero-subtitle">Your collaborative platform for sharing, discovering, and downloading high-quality study notes and resources.</p>
+                <form method="POST" class="hero-search-form">
+                    <input name="search-query" type="text" class="search-box" id="searchBox" placeholder="Search for notes, question papers, or topics...">
+                    <button type="submit" class="upload-btn">Search</button>
+                </form>
+            </div>
+            <div class="hero-visual">
+                <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f4d6.svg" alt="Book" class="hero-img">
+            </div>
+        </section>
+        <section class="features-section">
+            <div class="feature-card">
+                <div class="feature-icon">📚</div>
+                <h3>Curated Notes</h3>
+                <p>Find semester-wise, branch-specific, and top-rated notes uploaded by students and educators.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔍</div>
+                <h3>Smart Search</h3>
+                <p>Advanced search lets you discover notes by subject, tags, year, or even fuzzy keywords.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⬇️</div>
+                <h3>Instant Download</h3>
+                <p>Download notes in one click, with a seamless and secure experience.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🤝</div>
+                <h3>Community Driven</h3>
+                <p>Share your own notes, help others, and build your academic reputation.</p>
+            </div>
+        </section>
+        <section class="cta-section">
+            <h2>Ready to contribute?</h2>
+            <a href="{{ url_for('upload') }}" class="cta-btn">Upload Your Notes</a>
+        </section>
+    </main>
+
+    <script>
+        function createProfessionalNotesBg() {
+            const icons = [
+                // SVGs for note, book, and paperclip in brand colors
+                'data:image/svg+xml;utf8,<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="7" y="10" width="34" height="28" rx="6" fill="%2340e0d0"/><rect x="12" y="15" width="24" height="18" rx="3" fill="white"/></svg>', // Note
+                'data:image/svg+xml;utf8,<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="8" y="12" width="32" height="24" rx="5" fill="%2348cae4"/><rect x="13" y="17" width="22" height="14" rx="2" fill="white"/></svg>', // Book
+                'data:image/svg+xml;utf8,<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="16" y="8" width="16" height="32" rx="8" fill="%23ffe066"/><rect x="20" y="12" width="8" height="24" rx="4" fill="white"/></svg>' // Highlighter
+            ];
+            const container = document.querySelector('.bg-particles');
+            container.innerHTML = '';
+            for (let i = 0; i < 18; i++) {
+                const icon = document.createElement('img');
+                icon.src = icons[Math.floor(Math.random() * icons.length)];
+                icon.className = 'note-float';
+                icon.style.left = Math.random() * 100 + '%';
+                icon.style.top = Math.random() * 100 + '%';
+                icon.style.setProperty('--float-duration', (16 + Math.random() * 10) + 's');
+                icon.style.setProperty('--float-delay', (Math.random() * 10) + 's');
+                icon.style.transform = `rotate(${Math.random()*360}deg)`;
+                container.appendChild(icon);
+            }
+        }
+        document.getElementById('searchBox').addEventListener('input', function(e) {
+            if (e.target.value.trim() && e.key === 'Enter') {
+                handleSearch(e);
+            }
+        });
+    </script>
+</body>
+</html>

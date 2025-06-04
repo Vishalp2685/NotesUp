@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NotesHub - Upload Notes</title>
+    <link rel="stylesheet" href="{{url_for('static', filename='upload.css')}}">
+    <!-- <link rel="stylesheet" href="upload.css"> -->
+</head>
+<body>
+    <div class="bg-particles"></div>
+
+    {% include 'nav.html' %}
+
+    <div class="upload-container">
+        <div class="upload-card">
+            <div class="upload-header">
+                <h1 class="upload-title">📚 Upload Your Notes</h1>
+                <p class="upload-subtitle">Share your knowledge and help fellow students succeed</p>
+            </div>
+            <br><br>
+
+            <form class="upload-form" id="uploadForm" method="post" enctype="multipart/form-data">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="subject">Subject Name *</label>
+                        <input 
+                            type="text" 
+                            id="subject" 
+                            name="subject" 
+                            class="form-input" 
+                            placeholder="e.g., Data Structures & Algorithms"
+                            required
+                        >
+                        <div class="error-message" id="subjectError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="branch">Branch *</label>
+                        <select id="branch" name="branch" class="form-select" required>
+                            <option value="">Select branch</option>
+                            <option value="CSE">Computer Science Engineering</option>
+                            <option value="IT">Information Technology</option>
+                            <option value="ECE">Electronics & Communication</option>
+                            <option value="EEE">Electrical & Electronics</option>
+                            <option value="ME">Mechanical Engineering</option>
+                            <option value="CE">Civil Engineering</option>
+                            <option value="CHE">Chemical Engineering</option>
+                            <option value="AE">Aerospace Engineering</option>
+                            <option value="BT">Biotechnology</option>
+                            <option value="OTHER">Other</option>
+                        </select>
+                        <div class="error-message" id="branchError"></div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="semester">Semester *</label>
+                        <select id="semester" name="semester" class="form-select" required>
+                            <option value="">Select semester</option>
+                            <option value="1">1st Semester</option>
+                            <option value="2">2nd Semester</option>
+                            <option value="3">3rd Semester</option>
+                            <option value="4">4th Semester</option>
+                            <option value="5">5th Semester</option>
+                            <option value="6">6th Semester</option>
+                            <option value="7">7th Semester</option>
+                            <option value="8">8th Semester</option>
+                        </select>
+                        <div class="error-message" id="semesterError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" name="year">Academic Year *</label>
+                        <select id="year" name="year" class="form-select" required>
+                            <option value="">Select year</option>
+                            <option value="2024">2025</option>
+                            <option value="2024">2024</option>
+                            <option value="2023">2023</option>
+                            <option value="2022">2022</option>
+                            <option value="2021">2021</option>
+                            <option value="2020">2020</option>
+                        </select>
+                        <div class="error-message" id="yearError"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="description">Description</label>
+                    <textarea 
+                        id="description" 
+                        name="description" 
+                        class="form-textarea" 
+                        placeholder="Brief description of your notes content, topics covered, etc."
+                    ></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Upload Files *</label>
+                    <div class="file-upload-area" id="fileUploadArea">
+                        <div class="upload-icon">📁</div>
+                        <div class="upload-text">Drag & drop your files here</div>
+                        <label name="file" class="upload-subtext">or click to browse (PDF, DOC, DOCX, PPT, PPTX - Max 10MB each)</label>
+                        <input 
+                            type="file" 
+                            class="file-input" 
+                            accept=".pdf,.doc,.docx,.ppt,.pptx"
+                            id="fileInput"
+                            name = "file"
+                            required
+                            onchange="handleFileSelect(event)"
+                        >
+                    </div>
+                    <div class="file-list" id="fileList"></div>
+                    <div class="error-message" id="filesError"></div>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn" name="submit">
+                    <span id="btnText"> Upload Notes</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+
+    </body>
+    </html>

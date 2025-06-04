@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NotesHub - Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='sign_up.css') }}">
+</head>
+<body>
+
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <h1 class="login-title">Welcome to the Community!</h1>
+                <p class="login-subtitle">Enter your details to sign-up</p>
+            </div>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                <div class="flashes">
+                  {% for category, message in messages %}
+                    <div class="flash-message flash-{{ category }}">{{ message }}</div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            {% endwith %}
+
+            <form class="login-form" id="loginForm" method="POST">
+                <div class="form-group">
+                    <label class="form-label" for="userId">User name</label>
+                    <input 
+                        type="text" 
+                        id="user_name" 
+                        name="user_name" 
+                        class="form-input" 
+                        placeholder="Enter your user_name"
+                        required
+                    >
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="pasword">Enter Your Password</label>
+                    <input 
+                        type="password" 
+                        id="user_name" 
+                        name="password" 
+                        class="form-input" 
+                        placeholder="Enter your Password"
+                        required
+                    >
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn" name="login">
+                    <span id="btnText" name="login">Login</span>
+                </button>
+            </form>
+            <form method="POST" >
+                <h6 style="margin-left: 5%; padding-top: 15px;">
+                    Do not have an account? 
+                    <button type="submit" name="sign-up" style="background-color: transparent; border: none;color:#40e0d0;cursor: pointer;">
+                    sign-up
+                </button>
+                </h6>
+                
+            </form>
+            
+        </div>
+    </div>
+</body>
+</html>

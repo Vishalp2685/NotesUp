@@ -1,0 +1,14 @@
+# .gitignore for Notes Sharing Platform
+__pycache__/
+*.pyc
+instance/
+.env
+uploads/
+static/uploads/
+*.sqlite3
+*.db
+.DS_Store
+# VSCode
+.vscode/
+# OS
+Thumbs.db

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - NotesHub</title>
+    <link rel="stylesheet" href="{{url_for('static', filename='dashboard.css')}}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+<script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+</script>
+
+</head>
+<body>
+    <div class="bg-particles"></div>
+
+    {% include 'nav.html' %}
+
+    <main class="dashboard">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">📚</div>
+                <div class="stat-number">{{session.details|length}}</div>
+                <div class="stat-label">Notes Uploaded</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">💾</div>
+                <div class="stat-number">0</div>
+                <div class="stat-label">Saved Notes</div>
+            </div>
+        </div>
+
+        <div class="dashboard-content">
+            <div class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">My Notes</h2>
+                    <div class="section-actions">
+                        <form method="POST">
+                        <button class="btn btn-primary" name="upload">📤 Upload New</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="tabs">
+                    <div class="tab active" onclick="switchTab('uploaded')">Uploaded ({{session.details|length}})</div>
+                </div>
+
+                <div class="cards-grid" id="notesContainer">
+                    {% if session.details |length == 0 %}
+                    <div style="display: flex; justify-content: center; align-items: center; width: 100%; text-align: center; font-size: 1.2rem; color: #ccc; margin-left: 480px;margin-top: 25%;">
+                        Your uploaded notes will appear here
+                    </div>
+                    {% endif %}
+                    {% if session.details |length != 0 %}
+                    {% for note in session.details %}
+                    <form method="POST" action="/delete/{{note.id}}">
+                    <div class="card">
+                        <div class="card-icon">📘
+                            <button class="note-action" title="Delete" name="delete" style="margin-left: 180px;">🗑️</button>
+                        </div>
+                        <div class="card-subject">{{ note.sub_name }}</div>
+                        <div class="card-author" style="font-size: 10px;">{{note.description}}</div>
+                        <div class="card-tags">
+                            <span class="tag">Branch: {{ note.branch }}</span>
+                            <span class="tag">Sem: {{ note.sem }}</span>
+                            <span class="tag">Year: {{ note.year }}</span>
+                        </div>
+                        <div class="card-author">👤 Uploaded by: {{ note.uploaded_by }}</div>
+                        <canvas class="card-preview" id="pdf-preview-{{ loop.index }}"></canvas>
+                        <input type="hidden" class="pdf-path" value="{{ url_for('static', filename=note.file_path.replace('static/', '') ) }}">
+
+                    </div>
+                    </form>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </main>
+
+
+    <!-- ✅ PDF.js Preview Script -->
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const previews = document.querySelectorAll(".card-preview");
+        const paths = document.querySelectorAll(".pdf-path");
+
+        previews.forEach((canvas, index) => {
+            const url = paths[index].value;
+            const context = canvas.getContext('2d');
+
+            if (!url.endsWith(".pdf")) {
+                console.warn("Invalid PDF URL:", url);
+                return;
+            }
+
+            pdfjsLib.getDocument(url).promise.then(pdf => {
+                pdf.getPage(1).then(page => {
+                    const scale = 1.0;
+                    const viewport = page.getViewport({ scale });
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+
+                    const renderContext = {
+                        canvasContext: context,
+                        viewport: viewport
+                    };
+                    page.render(renderContext);
+                    console.log("Loading PDF:", url);
+                }).catch(error => {
+                    console.error("Error getting PDF page:", error);
+                });
+            }).catch(error => {
+                console.error("Error loading PDF:", error);
+            });
+        });
+    });
+
+</script>
+</body>
+</html>

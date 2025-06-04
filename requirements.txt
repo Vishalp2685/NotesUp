@@ -1,0 +1,7 @@
+bcrypt
+rapidfuzz
+sqlalchemy
+flask
+pymysql
+Werkzeug
+python-dotenv

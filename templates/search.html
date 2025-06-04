@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NotesHub</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='search.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+<script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+</script>
+</head>
+<body>
+    <div class="bg-particles"></div>
+
+    {% include 'nav.html' %}
+
+    <main class="landing" id="landing" style="margin-top: 60px;">
+        <div class="search-container" id="searchContainer" name = 'search-query'>
+            <form method="POST">
+                <input name = 'search-query' type="text" class="search-box" id="searchBox" placeholder="Search for notes and question papers">
+                <button type="submit" class="upload-btn" style="margin-left: 239px; margin-top: 20px;">Search</button>
+            </form>
+        
+        </div>
+    </main>
+    <!-- Notes Section -->
+     
+     <section class="section" style="margin-left: 150px; margin-right: 150px;">
+            {% if notes|length == 0 %}
+            <div style="text-align:center; margin: 8rem 0;">
+                <div style="font-size:3rem;">📭</div>
+                <h2 style="color:#40e0d0; margin:1rem 0 0.5rem 0;">No notes found</h2>
+                <p style="color:#b2b2c3; font-size:1.1rem;">Try searching for different notes or <a href="{{ url_for('upload') }}" style="color:#48cae4; text-decoration:underline; font-weight:600;">upload one</a> to help others!</p>
+                <div style="margin-top:1.2rem; font-size:1.3rem; color:#888;">"Knowledge shared is knowledge multiplied."</div>
+            </div>
+            {% endif %}
+            {% if notes|length != 0 %}
+            <h2 class="section-title">📚 Notes</h2>
+            <div class="cards-grid">
+            {% for note in notes %}
+            <div class="card" tabindex="0" role="button" aria-label="Download {{ note.sub_name }}" onclick="window.location.href='{{ url_for('download_any_file', filepath=note.file_path) }}'" onkeydown="if(event.key==='Enter'||event.key===' '){window.location.href='{{ url_for('download_any_file', filepath=note.file_path) }}';}">
+                <div class="card-icon">📘</div>
+                <div class="card-subject">{{ note.sub_name }}</div>
+                <div class="card-author" style="font-size: 10px;">{{note.description}}</div>
+                <div class="card-tags">
+                    <span class="tag">Branch: {{ note.branch }}</span>
+                    <span class="tag">Sem: {{ note.sem }}</span>
+                    <span class="tag">Year: {{ note.year }}</span>
+                </div>
+                <div class="card-author">👤 Uploaded by: {{ note.uploaded_by }}</div>
+                <div class="preview-container" style="overflow: hidden;">
+                <canvas class="card-preview" id="pdf-preview-{{ loop.index }}"></canvas>
+                <input type="hidden" class="pdf-path" value="{{ url_for('static', filename=note.file_path.replace('static/', '') ) }}">
+                </div>
+            </div>
+            {% endfor %} 
+             {% endif %}
+        </div>   
+    <br><br>
+        </section>
+    <script>
+        
+        document.addEventListener("DOMContentLoaded", () => {
+            const previews = document.querySelectorAll(".card-preview");
+            const paths = document.querySelectorAll(".pdf-path");
+
+            previews.forEach((canvas, index) => {
+                const url = paths[index].value;
+                const context = canvas.getContext('2d');
+
+                pdfjsLib.getDocument(url).promise.then(pdf => {
+                    pdf.getPage(1).then(page => {
+                        const scale = 1.2;
+                        const viewport = page.getViewport({ scale });
+                        canvas.width = viewport.width;
+                        canvas.height = viewport.height;
+
+                        const renderContext = {
+                            canvasContext: context,
+                            viewport: viewport
+                        };
+                        page.render(renderContext);
+                    });
+                });
+            });
+        });
+        // Add search button functionality
+        document.getElementById('searchBox').addEventListener('input', function(e) {
+            if (e.target.value.trim() && e.key === 'Enter') {
+                handleSearch(e);
+            }
+        });
+
+        // Make card clickable to download
+        document.addEventListener("DOMContentLoaded", function() {
+            document.querySelectorAll('.note-download-card').forEach(function(card) {
+                card.addEventListener('click', function(e) {
+                    // Prevent click on input/canvas from triggering download if needed
+                    if (e.target.tagName === 'INPUT' || e.target.tagName === 'CANVAS') return;
+                    const url = card.getAttribute('data-download-url');
+                    if (url) {
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.setAttribute('download', '');
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                    }
+                });
+                card.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        card.click();
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
