@@ -181,7 +181,8 @@ def dashboard():
         if request.method == 'GET':
             if 'login' in session:
                 data = db.get_dashbard_details(session['username'])
-                data = data[::-1]
+                if data:
+                    data = data[::-1]
             else:
                 return redirect(url_for('login'))
             details = []

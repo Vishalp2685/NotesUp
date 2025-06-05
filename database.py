@@ -7,16 +7,16 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Compose DB URL from .env variables if NOTESHUB_DB_URL is not set
+# Compose DB URL from .env variables for PostgreSQL
 
 db_user = os.environ.get('DB_USER')
 db_password = os.environ.get('DB_PASSWORD')
 db_host = os.environ.get('DB_HOST')
 db_name = os.environ.get('DB_NAME')
 if db_user and db_password and db_host and db_name:
-    DB_URL = f"mysql+pymysql://{db_user}:{db_password}@{db_host}:3306/{db_name}?charset=utf8mb4"
+    DB_URL = f"postgresql+psycopg2://{db_user}:{db_password}@{db_host}:5432/{db_name}"
 else:
-    raise RuntimeError("Database credentials are not set in .env. Please set NOTESHUB_DB_URL or DB_USER, DB_PASSWORD, DB_HOST, DB_NAME.")
+    raise RuntimeError("Database credentials are not set in .env. Please set DB_USER, DB_PASSWORD, DB_HOST, DB_NAME.")
 engine = create_engine(DB_URL)
 
 def validate(username, password):
@@ -43,9 +43,7 @@ def validate(username, password):
 def register_user(first_name, last_name, username, password, branch):
     # Added error handling for DB access and hashing
     try:
-        already_exist = text("""
-                    SELECT * FROM users WHERE username = :username
-                             """)
+        already_exist = text("SELECT * FROM users WHERE username = :username")
         with engine.connect() as conn:
             user = conn.execute(already_exist, {"username": username}).fetchone()
             if user:
