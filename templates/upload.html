@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NotesHub - Upload Notes</title>
     <link rel="stylesheet" href="{{url_for('static', filename='upload.css')}}">
-    <!-- <link rel="stylesheet" href="upload.css"> -->
 </head>
 <body>
     <div class="bg-particles"></div>
@@ -17,6 +16,15 @@
             <div class="upload-header">
                 <h1 class="upload-title">📚 Upload Your Notes</h1>
                 <p class="upload-subtitle">Share your knowledge and help fellow students succeed</p>
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <div class="flashes">
+                    {% for category, message in messages %}
+                    <div class="flash-message flash-{{ category }}" style="color: green;">{{ message }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% endwith %}
             </div>
             <br><br>
 
@@ -70,10 +78,10 @@
                         <div class="error-message" id="semesterError"></div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label" name="year">Academic Year *</label>
+                        <label class="form-label" for="year">Academic Year *</label>
                         <select id="year" name="year" class="form-select" required>
                             <option value="">Select year</option>
-                            <option value="2024">2025</option>
+                            <option value="2025">2025</option>
                             <option value="2024">2024</option>
                             <option value="2023">2023</option>
                             <option value="2022">2022</option>
@@ -98,19 +106,24 @@
                     <div class="file-upload-area" id="fileUploadArea">
                         <div class="upload-icon">📁</div>
                         <div class="upload-text">Drag & drop your files here</div>
-                        <label name="file" class="upload-subtext">or click to browse (PDF, DOC, DOCX, PPT, PPTX - Max 10MB each)</label>
+                        <label class="upload-subtext">or click to browse (PDF, DOC, DOCX, PPT, PPTX - Max 10MB each)</label>
                         <input 
                             type="file" 
                             class="file-input" 
                             accept=".pdf,.doc,.docx,.ppt,.pptx"
                             id="fileInput"
-                            name = "file"
+                            name="files"
+                            multiple
                             required
                             onchange="handleFileSelect(event)"
                         >
                     </div>
-                    <div class="file-list" id="fileList"></div>
+                    <!-- <div class="file-list" id="fileList"></div> -->
                     <div class="error-message" id="filesError"></div>
+                </div>
+                <div class="selected-files" id="selectedFiles" style="display: none;">
+                    <h3>Selected Files:</h3>
+                    <div id="fileList"></div>
                 </div>
 
                 <button type="submit" class="submit-btn" id="submitBtn" name="submit">
@@ -120,6 +133,224 @@
         </div>
     </div>
 
+    <script>
+        let selectedFiles = [];
+        const maxFileSize = 10 * 1024 * 1024; // 10MB in bytes
+        const allowedTypes = ['.pdf', '.doc', '.docx', '.ppt', '.pptx'];
+        const unitOptions = [
+            { value: '', label: 'Select Unit' },
+            { value: '1', label: 'Unit 1' },
+            { value: '2', label: 'Unit 2' },
+            { value: '3', label: 'Unit 3' },
+            { value: '4', label: 'Unit 4' },
+            { value: '5', label: 'Unit 5' },
+            { value: '6', label: 'Unit 6' }
+        ];
 
+        // Get file icon based on extension
+        function getFileIcon(filename) {
+            const ext = filename.toLowerCase().split('.').pop();
+            const icons = {
+                'pdf': '📄',
+                'doc': '📝',
+                'docx': '📝',
+                'ppt': '📊',
+                'pptx': '📊'
+            };
+            return icons[ext] || '📄';
+        }
+
+        // Format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Validate file
+        function validateFile(file) {
+            const fileExt = '.' + file.name.toLowerCase().split('.').pop();
+            
+            if (!allowedTypes.includes(fileExt)) {
+                return `File type not allowed: ${fileExt}`;
+            }
+            
+            if (file.size > maxFileSize) {
+                return `File too large: ${formatFileSize(file.size)} (max: 10MB)`;
+            }
+            
+            return null;
+        }
+
+        // Add files to selection
+        function addFiles(files) {
+            const fileArray = Array.from(files);
+            const errors = [];
+            
+            fileArray.forEach(file => {
+                const error = validateFile(file);
+                if (error) {
+                    errors.push(`${file.name}: ${error}`);
+                } else {
+                    // Check if file already exists
+                    const exists = selectedFiles.some(f => f.name === file.name && f.size === file.size);
+                    if (!exists) {
+                        selectedFiles.push({ file: file, unit: '' });
+                    }
+                }
+            });
+            
+            if (errors.length > 0) {
+                document.getElementById('filesError').textContent = errors.join(', ');
+            } else {
+                document.getElementById('filesError').textContent = '';
+            }
+            
+            updateFileList();
+            updateFileInput();
+        }
+
+        // Remove file from selection
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            updateFileList();
+            updateFileInput();
+        }
+
+        // Update file input with current selection
+        function updateFileInput() {
+            const fileInput = document.getElementById('fileInput');
+            const dt = new DataTransfer();
+            
+            selectedFiles.forEach(obj => {
+                dt.items.add(obj.file);
+            });
+            
+            fileInput.files = dt.files;
+        }
+
+        // Update file list display
+        function updateFileList() {
+            const fileList = document.getElementById('fileList');
+            const selectedFilesDiv = document.getElementById('selectedFiles');
+            if (selectedFiles.length === 0) {
+                selectedFilesDiv.style.display = 'none';
+                return;
+            }
+            selectedFilesDiv.style.display = 'block';
+            fileList.innerHTML = '';
+            selectedFiles.forEach((obj, index) => {
+                const file = obj.file;
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                // Create unit dropdown
+                const unitSelect = document.createElement('select');
+                unitSelect.className = 'unit-select';
+                unitSelect.required = true;
+                unitOptions.forEach(opt => {
+                    const option = document.createElement('option');
+                    option.value = opt.value;
+                    option.textContent = opt.label;
+                    if (obj.unit === opt.value) option.selected = true;
+                    unitSelect.appendChild(option);
+                });
+                unitSelect.onchange = function() {
+                    selectedFiles[index].unit = this.value;
+                };
+                fileItem.innerHTML = `
+                    <div class="file-info">
+                        <div class="file-icon">${getFileIcon(file.name)}</div>
+                        <div class="file-details">
+                            <div class="file-name">${file.name}</div>
+                            <div class="file-size">${formatFileSize(file.size)}</div>
+                        </div>
+                    </div>
+                `;
+                // Add unit dropdown and remove button
+                const rightDiv = document.createElement('div');
+                rightDiv.style.display = 'flex';
+                rightDiv.style.alignItems = 'center';
+                rightDiv.style.gap = '0.5rem';
+                rightDiv.appendChild(unitSelect);
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'file-remove';
+                removeBtn.title = 'Remove file';
+                removeBtn.textContent = '×';
+                removeBtn.onclick = function() { removeFile(index); };
+                rightDiv.appendChild(removeBtn);
+                fileItem.appendChild(rightDiv);
+                fileList.appendChild(fileItem);
+            });
+        }
+
+        // File input change handler
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                addFiles(e.target.files);
+            }
+        });
+
+        // Drag and drop functionality
+        const fileUploadArea = document.getElementById('fileUploadArea');
+
+        fileUploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            fileUploadArea.classList.add('drag-over');
+        });
+
+        fileUploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            fileUploadArea.classList.remove('drag-over');
+        });
+
+        fileUploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            fileUploadArea.classList.remove('drag-over');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                addFiles(files);
+            }
+        });
+
+        // Form submission handler
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            if (selectedFiles.length === 0) {
+                e.preventDefault();
+                document.getElementById('filesError').textContent = 'Please select at least one file to upload.';
+                return;
+            }
+            // Check if all units are selected
+            let allUnitsSelected = true;
+            selectedFiles.forEach((obj, idx) => {
+                if (!obj.unit) {
+                    allUnitsSelected = false;
+                }
+            });
+            if (!allUnitsSelected) {
+                e.preventDefault();
+                document.getElementById('filesError').textContent = 'Please select a unit for each file.';
+                return;
+            }
+            // Add hidden inputs for units
+            document.querySelectorAll('.unit-hidden-input').forEach(el => el.remove());
+            selectedFiles.forEach((obj, idx) => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = `unit_for_file_${idx}`;
+                input.value = obj.unit;
+                input.className = 'unit-hidden-input';
+                this.appendChild(input);
+            });
+            // Show loading state
+            const submitBtn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btnText');
+            submitBtn.disabled = true;
+            btnText.textContent = '⏳ Uploading...';
+        });
+    </script>
     </body>
-    </html>
+</html>
