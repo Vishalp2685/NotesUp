@@ -322,4 +322,4 @@ def unsave_note(note_id):
         return redirect(request.referrer or url_for('explore'))
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
