@@ -24,6 +24,8 @@ def sanitize_input(value):
 def sign_up():
     try:
         if request.method == 'GET':
+            # Clear flashed messages before rendering sign up page
+            session.pop('_flashes', None)
             return render_template('sign_up.html')
         password = request.form.get('password')
         re_pass = request.form.get('re_pass')
@@ -44,55 +46,6 @@ def sign_up():
     except Exception as e:
         flash(f'Unexpected error: {e}', 'error')
         return render_template('sign_up.html')
-
-@app.route('/search/<string:resource>', methods=['GET', 'POST'])
-def search_page(resource):
-    try:
-        resource = sanitize_input(resource)
-        user_id = session.get('user_id')
-        if request.method == 'GET':
-            found_resources = db.search_notes(resource)
-            resources = []
-            if found_resources:
-                for row in found_resources:
-                    row_dict = dict(row)
-                    row_dict['uploaded_at'] = row_dict['uploaded_at'].isoformat()
-                    row_dict['file_path'] = row_dict['file_path'].replace('\\','/')
-                    # Annotate with is_saved for Save/Unsave button
-                    if user_id:
-                        row_dict['is_saved'] = db.is_note_saved_by_user(user_id, row_dict['id'])
-                    else:
-                        row_dict['is_saved'] = False
-                    resources.append(row_dict)
-                    session['resources'] = resources
-            return render_template('search.html', notes=resources, query=resource)
-        if request.form.get('upload'):
-            return redirect(url_for('upload'))
-        elif request.form.get('login'):
-            return redirect(url_for('login'))
-        elif 'logout' in request.form:
-            session.clear()
-            return redirect(url_for('login'))
-        elif request.form.get('search-query'):
-            new_query = sanitize_input(request.form.get('search-query'))
-            found_resources = db.search_notes(new_query)
-            resources = []
-            if found_resources:
-                for row in found_resources:
-                    row_dict = dict(row)
-                    row_dict['uploaded_at'] = row_dict['uploaded_at'].isoformat()
-                    row_dict['file_path'] = row_dict['file_path'].replace('\\','/')
-                    if user_id:
-                        row_dict['is_saved'] = db.is_note_saved_by_user(user_id, row_dict['id'])
-                    else:
-                        row_dict['is_saved'] = False
-                    resources.append(row_dict)
-                    session['resources'] = resources
-            return render_template('search.html', notes=resources, query=resource)
-        return redirect(url_for('search_page', resource=resource))
-    except Exception as e:
-        flash(f'Error loading search page: {e}', 'error')
-        return render_template('search.html', notes=[], query=resource)
 
 @app.route('/upload',methods=['GET','POST'])
 def upload():
@@ -157,16 +110,18 @@ def explore():
             sem = sanitize_input(request.args.get('sem', '')) or None
             subject = sanitize_input(request.args.get('subject', '')) or None
             if session.get('search_query'):
-                q = session['search_query']
-                session.pop('search_query', None)  # Clear search query after use
                 print("session notes ")
             else:
                 q = sanitize_input(request.args.get('q', '')) or None
             print(f"Explore page accessed with year={year}, branch={branch}, sem={sem}, subject={subject}, q={q}")
             notes = db.get_explore_notes(year=year, branch=branch, sem=sem, subject=subject, q=q)
             notes = notes[::-1]
+            print(f"Retrieved {len(notes)} notes from the database")
             formatted_notes = []
             user_id = session.get('user_id')
+            saved_note_ids = set()
+            if user_id:
+                saved_note_ids = set(db.get_saved_notes_for_user(user_id) or [])
             for row in notes:
                 row_dict = dict(row)
                 if 'uploaded_at' in row_dict and row_dict['uploaded_at']:
@@ -174,7 +129,7 @@ def explore():
                 if 'file_path' in row_dict:
                     row_dict['file_path'] = row_dict['file_path'].replace('\\', '/').replace('\\', '/')
                 if user_id:
-                    row_dict['is_saved'] = db.is_note_saved_by_user(user_id, row_dict['id'])
+                    row_dict['is_saved'] = row_dict['id'] in saved_note_ids
                 else:
                     row_dict['is_saved'] = False
                 formatted_notes.append(row_dict)
@@ -271,6 +226,8 @@ def delete(id):
 def login():
     try:
         if request.method == 'GET':
+            # Clear flashed messages before rendering login page
+            session.pop('_flashes', None)
             return render_template('login.html')
         else:
             if 'sign-up' in request.form:

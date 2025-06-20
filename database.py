@@ -230,7 +230,7 @@ def get_explore_notes(year=None, branch=None, sem=None, subject=None, q=None):
             base_query += " AND LOWER(sub_name) LIKE :subject"
             params['subject'] = f"%{subject.lower()}%"
         if q:
-            base_query += " AND (LOWER(filename) LIKE :q OR LOWER(sub_name) LIKE :q OR LOWER(description) LIKE :q OR LOWER(unit) LIKE :q)"
+            base_query += " AND (LOWER(sub_name) LIKE :q OR LOWER(description) LIKE :q OR LOWER(unit) LIKE :q)"
             params['q'] = f"%{q.lower()}%"
         query = text(base_query)
         with engine.connect() as conn:

@@ -84,23 +84,22 @@
                     {% for note in notes %}
                     <div class="card" tabindex="0" role="button" aria-label="Download {{ note.sub_name }}" onclick="window.open('{{ note.file_path }}', '_blank')"
      onkeydown="if(event.key==='Enter'||event.key===' '){window.open('{{ note.file_path }}', '_blank');}">
-                <div class="card-icon">📘</div>
-                <div class="card-subject">{{ note.sub_name }}</div>
-                <div class="card-author" style="font-size: 10px;">{{note.description}}</div>
-                <div class="card-tags">
-                    <span class="tag">Branch: {{ note.branch }}</span>
-                    <span class="tag">Sem: {{ note.sem }}</span>
-                    <span class="tag">Year: {{ note.year }}</span>
-                </div>
-                <div class="card-author">👤 Uploaded by: {{ note.uploaded_by }}</div>
-                <canvas class="card-preview" id="pdf-preview-{{ loop.index }}"></canvas>
-                <!-- <input type="hidden" class="pdf-path" value="{{ url_for('download_any_file', filepath=note.file_path, preview=1) }}"> -->
-                <form method="post" action="{{ url_for('save_note' if not note.is_saved else 'unsave_note', note_id=note.id) }}" style="display:inline;">
-                    <button type="submit" class="note-action save-btn" style="margin-top: 10px; margin-bottom: 0;">
-                        {{ 'Unsave' if note.is_saved else 'Save' }}
-                    </button>
-                </form>
-            </div>
+                        <div class="card-icon">📘</div>
+                        <div class="card-subject">{{ note.sub_name }}</div>
+                        <div class="card-author" style="font-size: 10px;">{{note.description}}</div>
+                        <div class="card-tags">
+                            <span class="tag">Branch: {{ note.branch }}</span>
+                            <span class="tag">Sem: {{ note.sem }}</span>
+                            <span class="tag">Year: {{ note.year }}</span>
+                        </div>
+                        <div class="card-author">👤 Uploaded by: {{ note.uploaded_by }}</div>
+                        <canvas class="card-preview" id="pdf-preview-{{ loop.index }}"></canvas>
+                        <form method="post" action="{{ url_for('save_note' if not note.is_saved else 'unsave_note', note_id=note.id) }}" style="display:inline;">
+                            <button type="submit" class="note-action save-btn" style="margin-top: 10px; margin-bottom: 0;">
+                                {% if note.is_saved %}Unsave{% else %}Save{% endif %}
+                            </button>
+                        </form>
+                    </div>
                     {% endfor %}
                 </div>
             </section>
