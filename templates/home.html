@@ -14,19 +14,6 @@
     {% include 'nav.html' %}
 
     <main class="landing" id="landing">
-        {% with messages = get_flashed_messages(with_categories=True) %}
-          {% if messages %}
-            <div class="flashes">
-              {% for category, message in messages %}
-                <div class="flash-message flash-{{ category }}"
-                     style="color: {% if 'error' in category %}rgb(186,0,0){% elif 'success' in category %}rgb(0,186,0){% else %}#fff{% endif %};">
-                  {{ message }}
-                </div>
-              {% endfor %}
-            </div>
-          {% endif %}
-        {% endwith %}
-
         <section class="hero-section">
             <div class="hero-content">
                 <h1 class="hero-title">Welcome to NotesUp</h1>

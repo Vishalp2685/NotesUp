@@ -110,6 +110,8 @@ def explore():
             sem = sanitize_input(request.args.get('sem', '')) or None
             subject = sanitize_input(request.args.get('subject', '')) or None
             if session.get('search_query'):
+                q = session['search_query']
+                session.pop('search_query', None)  # Clear search query after use
                 print("session notes ")
             else:
                 q = sanitize_input(request.args.get('q', '')) or None
