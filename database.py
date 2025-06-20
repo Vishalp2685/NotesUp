@@ -4,10 +4,12 @@ from rapidfuzz import fuzz
 import bcrypt
 import os
 from dotenv import load_dotenv
-
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaIoBaseUpload,HttpError
+import io
+import re
 load_dotenv()
-
-# Compose DB URL from .env variables for PostgreSQL
 
 db_user = os.environ.get('DB_USER')
 db_password = os.environ.get('DB_PASSWORD')
@@ -19,8 +21,59 @@ else:
     raise RuntimeError("Database credentials are not set in .env. Please set DB_USER, DB_PASSWORD, DB_HOST, DB_NAME.")
 engine = create_engine(DB_URL)
 
+# Google Drive API setup
+SCOPES = ['https://www.googleapis.com/auth/drive.file']
+SERVICE_ACCOUNT_FILE = 'service_account.json'
+# FOLDER_ID = '16MnPZcridcMhtDFv8Ohtn4CfFvL48xIm'  # Optional, leave empty if not using a folder
+
+credentials = service_account.Credentials.from_service_account_file(
+    SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+drive_service = build('drive', 'v3', credentials=credentials)
+
+
+def upload_to_drive(file,file_name):
+    try:
+        file_metadata = {'name':file_name}
+        if os.getenv('FOLDER_ID'):
+            file_metadata['parents'] = [os.getenv('FOLDER_ID')]
+
+        file_stream = io.BytesIO(file.read())
+        media = MediaIoBaseUpload(file_stream, mimetype=file.content_type)
+
+        uploaded_file = drive_service.files().create(
+            body=file_metadata,
+            media_body=media,
+            fields='id'
+        ).execute()
+        file_id = uploaded_file.get('id')
+        view_link = f"https://drive.google.com/file/d/{file_id}/view?usp=sharing"
+        return view_link
+    except Exception as e:
+        return False
+
+def delete_from_drive(file_path):
+    try:
+        # Extract file ID from the Google Drive link
+        match = re.search(r'/d/([a-zA-Z0-9_-]+)', file_path)
+        if not match:
+            raise ValueError("Invalid Google Drive file path. Cannot extract file ID.")
+
+        file_id = match.group(1)
+
+        # Attempt to delete the file from Google Drive
+        drive_service.files().delete(fileId=file_id).execute()
+        print(f"[DELETE SUCCESS] File ID {file_id} deleted from Google Drive.")
+        return True
+
+    except HttpError as e:
+        print(f"[DELETE ERROR] HTTP Error: {e}")
+        return False
+    except Exception as e:
+        print(f"[DELETE ERROR] {e}")
+        return False
+
+
 def validate(username, password):
-    # Added error handling for DB access and bcrypt
     try:
         query = text("SELECT first_name, last_name, password FROM users WHERE username = :username")
         with engine.connect() as conn:
@@ -41,7 +94,6 @@ def validate(username, password):
         return None
 
 def register_user(first_name, last_name, username, password, branch):
-    # Added error handling for DB access and hashing
     try:
         already_exist = text("SELECT * FROM users WHERE username = :username")
         with engine.connect() as conn:
@@ -68,7 +120,6 @@ def register_user(first_name, last_name, username, password, branch):
         return False
 
 def file_data(uploaded_by, sub_name, branch, sem, year, desc, unit, filename, file_path):
-    # Added error handling for DB insert
     try:
         query = text("""
             INSERT INTO uploaded_files (
@@ -114,12 +165,24 @@ def get_dashbard_details(user_name):
 def delete(id):
     # Added error handling for DB delete
     try:
+        query1 = text("SELECT file_path FROM uploaded_files WHERE id = :id")
+        with engine.connect() as conn:
+            file_path = conn.execute(query1, {"id": id}).fetchone()
         query = text("DELETE FROM uploaded_files WHERE id = :id")
         with engine.connect() as conn:
             result = conn.execute(query,{"id":id})
             conn.commit()
-        print("file deleted")
-        return True if result else False
+        if file_path and delete_from_drive(file_path[0]):
+            deteled = True
+        else:
+            deteled = False
+            print("file deleted from drive")
+        if result.rowcount > 0 and deteled:
+            print(f"[DELETE SUCCESS] Note with ID {id} deleted from database.")
+            return True
+        else:
+            print(f"[DELETE ERROR] Note with ID {id} not found in database.")
+            return False
     except Exception as e:
         print(f"[ERROR] delete: {e}")
         return False
@@ -151,7 +214,6 @@ def search_notes(search_query):
         return False
 
 def get_explore_notes(year=None, branch=None, sem=None, subject=None, q=None):
-    # Added error handling for DB fetch
     try:
         base_query = "SELECT * FROM uploaded_files WHERE 1=1"
         params = {}
@@ -179,7 +241,6 @@ def get_explore_notes(year=None, branch=None, sem=None, subject=None, q=None):
         return []
 
 def get_user_details(username):
-    # Added error handling for DB fetch
     try:
         query = text("SELECT first_name, last_name, branch, username FROM users WHERE username = :username")
         with engine.connect() as conn:
@@ -197,7 +258,6 @@ def get_user_details(username):
         return None
 
 def update_user_details(username, first_name, last_name, branch):
-    # Added error handling for DB update
     try:
         query = text("""
             UPDATE users SET first_name = :first_name, last_name = :last_name, branch = :branch
@@ -215,3 +275,94 @@ def update_user_details(username, first_name, last_name, branch):
     except Exception as e:
         print(f"[ERROR] update_user_details: {e}")
         return False
+
+def save_note_for_user(user_id, note_id):
+    """Save a note for a user. Returns True if saved, False if already saved or error."""
+    try:
+        query = text("""
+            INSERT INTO user_saved_notes (user_id, note_id)
+            VALUES (:user_id, :note_id)
+            ON CONFLICT (user_id, note_id) DO NOTHING;
+        """)
+        with engine.connect() as conn:
+            result = conn.execute(query, {"user_id": user_id, "note_id": note_id})
+            conn.commit()
+        return True
+    except Exception as e:
+        print(f"[ERROR] save_note_for_user: {e}")
+        return False
+
+def unsave_note_for_user(user_id, note_id):
+    """Unsave a note for a user. Returns True if unsaved, False if not found or error."""
+    try:
+        query = text("""
+            DELETE FROM user_saved_notes WHERE user_id = :user_id AND note_id = :note_id
+        """)
+        with engine.connect() as conn:
+            result = conn.execute(query, {"user_id": user_id, "note_id": note_id})
+            conn.commit()
+        return True
+    except Exception as e:
+        print(f"[ERROR] unsave_note_for_user: {e}")
+        return False
+
+def is_note_saved_by_user(user_id, note_id):
+    """Check if a note is saved by a user. Returns True/False."""
+    try:
+        query = text("""
+            SELECT 1 FROM user_saved_notes WHERE user_id = :user_id AND note_id = :note_id
+        """)
+        with engine.connect() as conn:
+            result = conn.execute(query, {"user_id": user_id, "note_id": note_id}).fetchone()
+        return bool(result)
+    except Exception as e:
+        print(f"[ERROR] is_note_saved_by_user: {e}")
+        return False
+
+def get_saved_notes_for_user(user_id):
+    """Get all notes saved by a user. Returns a list of note IDs."""
+    try:
+        query = text("""
+            SELECT note_id FROM user_saved_notes WHERE user_id = :user_id
+        """)
+        with engine.connect() as conn:
+            result = conn.execute(query, {"user_id": user_id}).fetchall()
+        return [row[0] for row in result]
+    except Exception as e:
+        print(f"[ERROR] get_saved_notes_for_user: {e}")
+        return []
+
+def get_user_id(username):
+    """Get the user id for a given username. Returns user id or None."""
+    try:
+        query = text("SELECT id FROM users WHERE username = :username")
+        with engine.connect() as conn:
+            result = conn.execute(query, {"username": username}).fetchone()
+        return result[0] if result else None
+    except Exception as e:
+        print(f"[ERROR] get_user_id: {e}")
+        return None
+
+def get_note_by_id(note_id):
+    """Get a note's details by its id from uploaded_files."""
+    try:
+        query = text("SELECT * FROM uploaded_files WHERE id = :note_id")
+        with engine.connect() as conn:
+            result = conn.execute(query, {"note_id": note_id}).mappings().first()
+        return result
+    except Exception as e:
+        print(f"[ERROR] get_note_by_id: {e}")
+        return None
+
+def modify_note_address(note_id, new_file_path):
+    """Modify the file path of a note."""
+    try:
+        query = text("UPDATE uploaded_files SET file_path = :new_file_path WHERE id = :note_id")
+        with engine.connect() as conn:
+            result = conn.execute(query, {"new_file_path": new_file_path, "note_id": note_id})
+            conn.commit()
+        return result.rowcount > 0
+    except Exception as e:
+        print(f"[ERROR] modify_note_address: {e}")
+        return False
+    

@@ -12,3 +12,4 @@ static/uploads/
 .vscode/
 # OS
 Thumbs.db
+service_accounts.json

@@ -1,13 +1,13 @@
-from flask import Flask,render_template,request,redirect,url_for,session,flash
+from flask import Flask,render_template,request,redirect,url_for,session,flash,jsonify
 import database as db
 from werkzeug.utils import secure_filename
 import os
 from flask import send_from_directory,abort
 import re
-
+from flask import g
 # Remove hardcoded secret key and use environment variable
 app = Flask(__name__)
-app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'changeme-in-production')
+app.secret_key = os.environ.get('SECRET_KEY')
 
 def add_user(first_name,last_name,branch,user_name,password):
     user = db.register_user(first_name=first_name,last_name=last_name,branch=branch,username=user_name,password=password)
@@ -19,8 +19,6 @@ def sanitize_input(value):
     value = re.sub(r"[;'\"]", "", value) 
     value = value.strip()
     return value
-
-# --- Error handling added throughout this file ---
 
 @app.route('/sign-up',methods = ['POST','GET'])
 def sign_up():
@@ -51,6 +49,7 @@ def sign_up():
 def search_page(resource):
     try:
         resource = sanitize_input(resource)
+        user_id = session.get('user_id')
         if request.method == 'GET':
             found_resources = db.search_notes(resource)
             resources = []
@@ -59,10 +58,14 @@ def search_page(resource):
                     row_dict = dict(row)
                     row_dict['uploaded_at'] = row_dict['uploaded_at'].isoformat()
                     row_dict['file_path'] = row_dict['file_path'].replace('\\','/')
+                    # Annotate with is_saved for Save/Unsave button
+                    if user_id:
+                        row_dict['is_saved'] = db.is_note_saved_by_user(user_id, row_dict['id'])
+                    else:
+                        row_dict['is_saved'] = False
                     resources.append(row_dict)
                     session['resources'] = resources
             return render_template('search.html', notes=resources, query=resource)
-        # POST form handling
         if request.form.get('upload'):
             return redirect(url_for('upload'))
         elif request.form.get('login'):
@@ -79,6 +82,10 @@ def search_page(resource):
                     row_dict = dict(row)
                     row_dict['uploaded_at'] = row_dict['uploaded_at'].isoformat()
                     row_dict['file_path'] = row_dict['file_path'].replace('\\','/')
+                    if user_id:
+                        row_dict['is_saved'] = db.is_note_saved_by_user(user_id, row_dict['id'])
+                    else:
+                        row_dict['is_saved'] = False
                     resources.append(row_dict)
                     session['resources'] = resources
             return render_template('search.html', notes=resources, query=resource)
@@ -104,7 +111,7 @@ def upload():
                 return redirect(url_for('explore'))
             elif 'logout' in request.form:
                 session.clear()
-                return redirect(url_for('login'))
+                return redirect(url_for('login')) 
             elif 'upload' in request.form:
                 return redirect(url_for('upload'))
             else:
@@ -121,18 +128,21 @@ def upload():
                 for i, file in enumerate(files):
                     if file:
                         filename = secure_filename(file.filename)
-                        file_path = os.path.join('static/uploads', filename)
-                        try:
-                            file.save(file_path)
-                        except Exception as e:
-                            flash(f'File save error: {e}', 'error')
-                            continue
-                        if db.file_data(session['username'], sub_name, branch, sem, year, desc, units[i], filename, file_path):
-                            flash('File successfully uploaded')
-                        else:
-                            flash('Database error occurred', 'error')
+                        file_path = db.upload_to_drive(file,file_name=filename)
+                        if not file_path:
+                            print('File upload to Google Drive failed', 'upload_error')
+                            flash('File upload to Google Drive failed') # Upload to Google Drive and get link
+                            return redirect(url_for('upload'))
+                        if not db.file_data(session['username'], sub_name, branch, sem, year, desc, units[i], filename, file_path):
+                            print('Database error occurred', 'upload_error')
+                            flash('Database error occurred while saving file data', 'upload_error')
+                            return redirect(url_for('upload'))
                     else:
-                        flash('No file selected', 'error')
+                        flash('No file selected', 'upload_error')
+                        print('No file selected', 'upload_error')
+                        return redirect(url_for('upload'))
+                print('Files uploaded successfully', 'success')
+                flash('Files uploaded successfully', 'upload_success')
                 return redirect(url_for('upload'))
     except Exception as e:
         flash(f'Unexpected error: {e}', 'error')
@@ -146,16 +156,27 @@ def explore():
             branch = sanitize_input(request.args.get('branch', '')) or None
             sem = sanitize_input(request.args.get('sem', '')) or None
             subject = sanitize_input(request.args.get('subject', '')) or None
-            q = sanitize_input(request.args.get('q', '')) or None
+            if session.get('search_query'):
+                q = session['search_query']
+                session.pop('search_query', None)  # Clear search query after use
+                print("session notes ")
+            else:
+                q = sanitize_input(request.args.get('q', '')) or None
+            print(f"Explore page accessed with year={year}, branch={branch}, sem={sem}, subject={subject}, q={q}")
             notes = db.get_explore_notes(year=year, branch=branch, sem=sem, subject=subject, q=q)
             notes = notes[::-1]
             formatted_notes = []
+            user_id = session.get('user_id')
             for row in notes:
                 row_dict = dict(row)
                 if 'uploaded_at' in row_dict and row_dict['uploaded_at']:
                     row_dict['uploaded_at'] = row_dict['uploaded_at'].isoformat() if hasattr(row_dict['uploaded_at'], 'isoformat') else row_dict['uploaded_at']
                 if 'file_path' in row_dict:
                     row_dict['file_path'] = row_dict['file_path'].replace('\\', '/').replace('\\', '/')
+                if user_id:
+                    row_dict['is_saved'] = db.is_note_saved_by_user(user_id, row_dict['id'])
+                else:
+                    row_dict['is_saved'] = False
                 formatted_notes.append(row_dict)
             return render_template('explore.html', notes=formatted_notes)
         else:
@@ -172,7 +193,7 @@ def explore():
             elif 'upload' in req_form:
                 return redirect(url_for('upload'))
     except Exception as e:
-        flash(f'Error loading explore page: {e}', 'error')
+        flash(f'Error loading explore page: {e}', 'explore_error')
         return render_template('explore.html', notes=[])
 
 @app.route('/dashboard',methods = ['GET','POST'])
@@ -196,7 +217,23 @@ def dashboard():
             else:
                 session['details'] = []
             user_details = db.get_user_details(session['username'])
-            return render_template('dashboard.html', user_details=user_details)
+            # Fetch saved notes for the user
+            user_id = session.get('user_id')
+            saved_notes = []
+            if user_id:
+                saved_note_ids = db.get_saved_notes_for_user(user_id)
+                if saved_note_ids:
+                    # Fetch note details for each saved note id
+                    for note_id in saved_note_ids:
+                        note_row = db.get_note_by_id(note_id)
+                        if note_row:
+                            note_dict = dict(note_row)
+                            if 'uploaded_at' in note_dict and note_dict['uploaded_at']:
+                                note_dict['uploaded_at'] = note_dict['uploaded_at'].isoformat() if hasattr(note_dict['uploaded_at'], 'isoformat') else note_dict['uploaded_at']
+                            if 'file_path' in note_dict:
+                                note_dict['file_path'] = note_dict['file_path'].replace('\\', '/')
+                            saved_notes.append(note_dict)
+            return render_template('dashboard.html', user_details=user_details, saved_notes=saved_notes)
         else:
             req_form = request.form
             if 'home' in req_form:
@@ -210,11 +247,9 @@ def dashboard():
                 return redirect(url_for('login'))
             elif 'upload' in req_form:
                 return redirect(url_for('upload'))
-            else:
-                flash('Unknown dashboard action', 'error')
-                return redirect(url_for('dashboard'))
     except Exception as e:
-        flash(f'Error loading dashboard: {e}', 'error')
+        # flash(f'Error loading dashboard: {e}', 'error')
+        print(f'Error loading dashboard: {e}')
         return redirect(url_for('dashboard'))
 
 @app.route('/delete/<int:id>',methods = ['POST'])
@@ -231,6 +266,7 @@ def delete(id):
         flash(f'Error deleting file: {e}', 'error')
         return redirect(url_for('dashboard'))
 
+
 @app.route('/login',methods = ['POST','GET'])
 def login():
     try:
@@ -246,6 +282,9 @@ def login():
                 session['login'] = True
                 session['profile_logo'] = user['first_name'][0] + user['last_name'][0]
                 session['username'] = user_name
+                # Set user_id in session for save/unsave logic
+                user_id = db.get_user_id(user_name)
+                session['user_id'] = user_id
                 return redirect(url_for('dashboard'))
             else:
                 flash('Invalid username or password', 'error')
@@ -280,47 +319,48 @@ def home():
             elif 'logout' in req_form:
                 session.clear()
                 return redirect(url_for('home'))
-            elif 'search-query' in req_form:
-                new_query = req_form.get('search-query')
-                found_resources = db.search_notes(new_query)
-                resources = []
-                if found_resources:
-                    for row in found_resources:
-                        row_dict = dict(row)
-                        row_dict['uploaded_at'] = row_dict['uploaded_at'].isoformat()
-                        row_dict['file_path'] = row_dict['file_path'].replace('\\','/')
-                        resources.append(row_dict)
-                        session['resources'] = resources
-                return render_template('search.html', notes=resources, query=new_query)
+            elif 'q' in req_form:
+                search_query = sanitize_input(request.form.get('q'))
+                session['search_query'] = search_query
+                return redirect(url_for('explore'))
+            
     except Exception as e:
         flash(f'Error loading home page: {e}', 'error')
         return render_template('home.html')
 
-@app.route('/download/file/<path:filepath>')
-def download_any_file(filepath):
+@app.route('/save_note/<int:note_id>', methods=['POST'])
+def save_note(note_id):
     try:
-        # Only allow files from known safe directories
-        allowed_dirs = [
-            os.path.join(os.getcwd(), 'engineering_notes'),
-            os.path.join(os.getcwd(), 'static', 'uploads'),
-            os.path.join(os.getcwd(), 'static')
-        ]
-        abs_path = os.path.abspath(os.path.join(os.getcwd(), filepath))
-        for allowed in allowed_dirs:
-            if abs_path.startswith(allowed):
-                directory, filename = os.path.split(abs_path)
-                # For PDF preview, set as_attachment=False for inline viewing
-                if filename.lower().endswith('.pdf') and request.args.get('preview') == '1':
-                    if not os.path.exists(os.path.join(directory, filename)):
-                        abort(404)  # File not found
-                    return send_from_directory(directory, filename, as_attachment=False)
-                if not os.path.exists(os.path.join(directory, filename)):
-                    abort(404)  # File not found
-                return send_from_directory(directory, filename, as_attachment=True)
-        abort(404)
+        user_id = session.get('user_id') or getattr(g, 'user_id', None)
+        if not user_id:
+            flash('You must be logged in to save notes.', 'error')
+            return redirect(request.referrer or url_for('explore'))
+        if db.is_note_saved_by_user(user_id, note_id):
+            flash('Note already saved.', 'error')
+        else:
+            db.save_note_for_user(user_id, note_id)
+            flash('Note saved!', 'success')
+        return redirect(request.referrer or url_for('explore'))
     except Exception as e:
-        flash(f'File download error: {e}', 'error')
-        abort(404)
+        flash(f'Error saving note: {e}', 'error')
+        return redirect(request.referrer or url_for('explore'))
+
+@app.route('/unsave_note/<int:note_id>', methods=['POST'])
+def unsave_note(note_id):
+    try:
+        user_id = session.get('user_id') or getattr(g, 'user_id', None)
+        if not user_id:
+            flash('You must be logged in to unsave notes.', 'error')
+            return redirect(request.referrer or url_for('explore'))
+        if db.is_note_saved_by_user(user_id, note_id):
+            db.unsave_note_for_user(user_id, note_id)
+            flash('Note unsaved.', 'success')
+        else:
+            flash('Note was not saved.', 'error')
+        return redirect(request.referrer or url_for('explore'))
+    except Exception as e:
+        flash(f'Error unsaving note: {e}', 'error')
+        return redirect(request.referrer or url_for('explore'))
 
 if __name__ == '__main__':
     app.run(debug=True)

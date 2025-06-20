@@ -3,12 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - NotesHub</title>
+    <title>Dashboard - NotesUp</title>
     <link rel="stylesheet" href="{{url_for('static', filename='dashboard.css')}}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
-<script>
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
-</script>
 
 </head>
 <body>
@@ -25,7 +22,7 @@
             </div>
             <div class="stat-card">
                 <div class="stat-icon">💾</div>
-                <div class="stat-number">0</div>
+                <div class="stat-number">{{ saved_notes|length }}</div>
                 <div class="stat-label">Saved Notes</div>
             </div>
         </div>
@@ -43,6 +40,7 @@
 
                 <div class="tabs">
                     <div class="tab active" onclick="switchTab('uploaded')">Uploaded ({{session.details|length}})</div>
+                    <div class="tab" onclick="switchTab('saved')">Saved ({{ saved_notes|length }})</div>
                 </div>
 
                 <div class="cards-grid" id="notesContainer">
@@ -77,13 +75,68 @@
                     {% endfor %}
                     {% endif %}
                 </div>
+
+                <div class="cards-grid" id="savedNotesContainer" style="display:none; margin-top:2rem;">
+                    {% if saved_notes|length == 0 %}
+                    <div style="display: flex; justify-content: center; align-items: center; width: 100%; text-align: center; font-size: 1.2rem; color: #ccc; margin-left: 480px;margin-top: 25%;">
+                        You haven't saved any notes yet.
+                    </div>
+                    {% endif %}
+                    {% for note in saved_notes %}
+                    <div class="card">
+                        <div class="card-icon">💾</div>
+                        <div class="card-subject">{{ note.sub_name }}</div>
+                        <div class="card-author" style="font-size: 10px;">{{note.description}}</div>
+                        <div class="card-tags">
+                            <span class="tag">Branch: {{ note.branch }}</span>
+                            <span class="tag">Sem: {{ note.sem }}</span>
+                            <span class="tag">Year: {{ note.year }}</span>
+                            {% if note.unit is not none %}
+                            <span class="tag">unit: {{ note.unit }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="card-author">👤 Uploaded by: {{ note.uploaded_by }}</div>
+                        <canvas class="card-preview" id="pdf-preview-saved-{{ loop.index }}"></canvas>
+                        <!-- <input type="hidden" class="pdf-path" value="{{ url_for('static', filename=note.file_path.replace('static/', '') ) }}"> -->
+                        <form method="POST" action="/unsave_note/{{note.id}}">
+                            <button class="note-action" title="Unsave" style="margin-top: 10px;">Remove from Saved</button>
+                        </form>
+                    </div>
+                    {% endfor %}
+                </div>
+
             </div>
         </div>
     </main>
 
-
-    <!-- ✅ PDF.js Preview Script -->
     <script>
+        // Logic for giving warning before deleting a note
+        document.querySelectorAll('.note-action').forEach(button => {
+            button.addEventListener('click', function(event) {
+                if (this.name === 'delete' && !confirm('Are you sure you want to delete this note?')) {
+                    event.preventDefault();
+                }
+            });
+        });
+    
+    // Tab switching logic for Uploaded/Saved
+    function switchTab(tab) {
+        const uploadedTab = document.querySelector('.tab:nth-child(1)');
+        const savedTab = document.querySelector('.tab:nth-child(2)');
+        const uploadedContainer = document.getElementById('notesContainer');
+        const savedContainer = document.getElementById('savedNotesContainer');
+        if(tab === 'uploaded') {
+            uploadedTab.classList.add('active');
+            savedTab.classList.remove('active');
+            uploadedContainer.style.display = '';
+            savedContainer.style.display = 'none';
+        } else {
+            savedTab.classList.add('active');
+            uploadedTab.classList.remove('active');
+            uploadedContainer.style.display = 'none';
+            savedContainer.style.display = '';
+        }
+    }
     document.addEventListener("DOMContentLoaded", () => {
         const previews = document.querySelectorAll(".card-preview");
         const paths = document.querySelectorAll(".pdf-path");

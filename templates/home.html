@@ -8,23 +8,31 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        body, .hero-title, .section-title, .cta-section h2, .feature-card, .card, .chat-header, .cta-btn, .upload-btn {
-            font-family: 'Manrope', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif !important;
-        }
-    </style>
 </head>
 <body>
     <div class="bg-particles"></div>
     {% include 'nav.html' %}
 
     <main class="landing" id="landing">
+        {% with messages = get_flashed_messages(with_categories=True) %}
+          {% if messages %}
+            <div class="flashes">
+              {% for category, message in messages %}
+                <div class="flash-message flash-{{ category }}"
+                     style="color: {% if 'error' in category %}rgb(186,0,0){% elif 'success' in category %}rgb(0,186,0){% else %}#fff{% endif %};">
+                  {{ message }}
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
         <section class="hero-section">
             <div class="hero-content">
-                <h1 class="hero-title">Welcome to NotesHub</h1>
+                <h1 class="hero-title">Welcome to NotesUp</h1>
                 <p class="hero-subtitle">Your collaborative platform for sharing, discovering, and downloading high-quality study notes and resources.</p>
                 <form method="POST" class="hero-search-form">
-                    <input name="search-query" type="text" class="search-box" id="searchBox" placeholder="Search for notes, question papers, or topics...">
+                    <input name="q" type="text" class="search-box" id="searchBox" placeholder="Search for notes or topics...">
                     <button type="submit" class="upload-btn">Search</button>
                 </form>
             </div>

@@ -1,9 +1,12 @@
-bcrypt
-rapidfuzz
-sqlalchemy
 flask
+sqlalchemy
+psycopg2-binary
 pymysql
 Werkzeug
 python-dotenv
-psycopg2-binary
-gunicorn
+bcrypt
+rapidfuzz
+google-api-python-client
+google-auth
+google-auth-oauthlib
+google-auth-httplib2

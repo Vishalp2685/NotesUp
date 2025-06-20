@@ -16,13 +16,8 @@
 </head>
 <body>
     {% include 'nav.html' %}
-    <style>
-        .nav-right {
-            margin-right: 80px;
-        }
-    </style>
     <div class="explore-main-container">
-        <aside class="explore-sidebar">
+        <aside class="explore-sidebar" style="margin-left: -10%;">
             <form class="explore-filters" method="GET">
                 <div class="filter-title">Filters</div>
                 <div class="filter-group">
@@ -72,27 +67,23 @@
             <div class="explore-header-bar">
                 <form class="explore-searchbar" method="GET">
                     <input type="text" name="q" placeholder="Search notes, subjects, or papers…" value="{{ request.args.get('q', '') }}">
-                    <button type="submit" class="search-btn">🔍</button>
+                    <button type="submit" class="upload-btn search-btn" >🔍</button>
                 </form>
-                <!-- <div class="explore-actions">
-                    <button class="toggle-btn active" id="gridViewBtn" title="Grid view" aria-label="Grid view"><svg width="20" height="20" fill="none"><rect x="2" y="2" width="6" height="6" rx="2" fill="#6c63ff"/><rect x="12" y="2" width="6" height="6" rx="2" fill="#6c63ff"/><rect x="2" y="12" width="6" height="6" rx="2" fill="#6c63ff"/><rect x="12" y="12" width="6" height="6" rx="2" fill="#6c63ff"/></svg></button>
-                    <button class="toggle-btn" id="listViewBtn" title="List view" aria-label="List view"><svg width="20" height="20" fill="none"><rect x="3" y="4" width="14" height="3" rx="1.5" fill="#b2b2c3"/><rect x="3" y="9" width="14" height="3" rx="1.5" fill="#b2b2c3"/><rect x="3" y="14" width="14" height="3" rx="1.5" fill="#b2b2c3"/></svg></button>
-                    <button class="toggle-btn" id="darkModeBtn" title="Toggle dark mode" aria-label="Toggle dark mode"><svg width="20" height="20" fill="none"><circle cx="10" cy="10" r="8" fill="#e0e6ed"/><path d="M10 2a8 8 0 1 0 8 8c0-4.418-3.582-8-8-8z" fill="#6c63ff"/></svg></button>
-                </div> -->
             </div>
+
             <section class="explore-trending">
-                <!-- <h2 class="trending-title">Trending Notes</h2> -->
                 {% if notes|length == 0 %}
                 <div style="text-align:center; margin: 8rem 0; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%;">
                     <div style="font-size:3rem;">📭</div>
-                    <h2 style="color:#40e0d0; margin:1rem 0 0.5rem 0;">No notes found</h2>
+                    <h2 style="color:#40e0d0; margin:1rem 0 0.5rem 0;">No notes found for {{session.query}}</h2>
                     <p style="color:#b2b2c3; font-size:1.1rem;">Try searching for different notes or <a href="{{ url_for('upload') }}" style="color:#48cae4; text-decoration:underline; font-weight:600;">upload one</a> to help others!</p>
                     <div style="margin-top:1.2rem; font-size:1.3rem; color:#888;">"Knowledge shared is knowledge multiplied."</div>
                 </div>
                 {% endif %}
                 <div class="cards-grid">
                     {% for note in notes %}
-                    <div class="card" tabindex="0" role="button" aria-label="Download {{ note.sub_name }}" onclick="window.location.href='{{ url_for('download_any_file', filepath=note.file_path) }}'" onkeydown="if(event.key==='Enter'||event.key===' '){window.location.href='{{ url_for('download_any_file', filepath=note.file_path) }}';}">
+                    <div class="card" tabindex="0" role="button" aria-label="Download {{ note.sub_name }}" onclick="window.open('{{ note.file_path }}', '_blank')"
+     onkeydown="if(event.key==='Enter'||event.key===' '){window.open('{{ note.file_path }}', '_blank');}">
                 <div class="card-icon">📘</div>
                 <div class="card-subject">{{ note.sub_name }}</div>
                 <div class="card-author" style="font-size: 10px;">{{note.description}}</div>
@@ -103,58 +94,18 @@
                 </div>
                 <div class="card-author">👤 Uploaded by: {{ note.uploaded_by }}</div>
                 <canvas class="card-preview" id="pdf-preview-{{ loop.index }}"></canvas>
-                <input type="hidden" class="pdf-path" value="{{ url_for('download_any_file', filepath=note.file_path, preview=1) }}">
+                <!-- <input type="hidden" class="pdf-path" value="{{ url_for('download_any_file', filepath=note.file_path, preview=1) }}"> -->
+                <form method="post" action="{{ url_for('save_note' if not note.is_saved else 'unsave_note', note_id=note.id) }}" style="display:inline;">
+                    <button type="submit" class="note-action save-btn" style="margin-top: 10px; margin-bottom: 0;">
+                        {{ 'Unsave' if note.is_saved else 'Save' }}
+                    </button>
+                </form>
             </div>
                     {% endfor %}
                 </div>
             </section>
         </main>
     </div>
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const previews = document.querySelectorAll(".card-preview");
-            const paths = document.querySelectorAll(".pdf-path");
-
-            previews.forEach((canvas, index) => {
-                const url = paths[index].value;
-                const context = canvas.getContext('2d');
-
-                pdfjsLib.getDocument(url).promise.then(pdf => {
-                    pdf.getPage(1).then(page => {
-                        const scale = 1.2;
-                        const viewport = page.getViewport({ scale });
-                        canvas.width = viewport.width;
-                        canvas.height = viewport.height;
-
-                        const renderContext = {
-                            canvasContext: context,
-                            viewport: viewport
-                        };
-                        page.render(renderContext);
-                    });
-                });
-            });
-        });
-
-        // Grid/List toggle logic (basic, for demo)
-        const gridBtn = document.getElementById('gridViewBtn');
-        const listBtn = document.getElementById('listViewBtn');
-        const notesGrid = document.getElementById('notesGrid');
-        gridBtn.onclick = () => {
-            gridBtn.classList.add('active');
-            listBtn.classList.remove('active');
-            notesGrid.classList.remove('list-view');
-        };
-        listBtn.onclick = () => {
-            listBtn.classList.add('active');
-            gridBtn.classList.remove('active');
-            notesGrid.classList.add('list-view');
-        };
-        // (Optional) Dark mode toggle logic placeholder
-        document.getElementById('darkModeBtn').onclick = () => {
-            document.body.classList.toggle('dark-mode');
-        };
-    </script>
 </body>
 
 </html>

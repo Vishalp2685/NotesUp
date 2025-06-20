@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NotesHub - Login</title>
+    <title>NotesUp - Login</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='sign_up.css') }}">
 </head>
 <body>
@@ -12,19 +12,24 @@
         <div class="login-card">
             <div class="login-header">
                 <h1 class="login-title">Welcome to the Community!</h1>
-                <p class="login-subtitle">Enter your details to access NotesHub</p>
+                <p class="login-subtitle">Enter your details to access NotesUp</p>
             </div>
 
+            <!-- Flash messages block -->
+            {% with messages = get_flashed_messages(with_categories=True) %}
+              {% if messages %}
+                <div class="flashes">
+                  {% for category, message in messages %}
+                    <div class="flash-message flash-{{ category }}"
+                         style="color: {% if 'error' in category %}rgb(186,0,0){% elif 'success' in category %}rgb(0,186,0){% else %}#fff{% endif %};">
+                      {{ message }}
+                    </div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            {% endwith %}
+
             <form class="login-form" method="post">
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                        {% if messages %}
-                            {% for category, message in messages %}
-                                <div class="alert alert-{{ category }}">
-                                    {{ message }}
-                                </div>
-                            {% endfor %}
-                        {% endif %}
-                    {% endwith %}
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label" for="first_name">First Name</label>
@@ -57,13 +62,13 @@
                         <option value="CSE">Computer Science Engineering</option>
                         <option value="IT">Information Technology</option>
                         <option value="ECE">Electronics & Communication Engineering</option>
-                        <option value="EEE">Electrical & Electronics Engineering</option>
+                        <option value="AI">Artificial Intelligence</option>
+                        <option value="IIOT">Industrial Internet of Things</option>
                         <option value="ME">Mechanical Engineering</option>
                         <option value="CE">Civil Engineering</option>
                         <option value="CHE">Chemical Engineering</option>
                         <option value="AE">Aerospace Engineering</option>
                         <option value="BT">Biotechnology</option>
-                        <!-- <option value="OTHER">Other</option> -->
                     </select>
                     <div class="error-message" id="branchError"></div>
                 </div>
@@ -83,23 +88,25 @@
                 <div class="form-group">
                     <label class="form-label" for="pasword">Password</label>
                     <input 
-                        type="text" 
+
                         name="password" 
                         class="form-input" 
                         placeholder="Enter your Password"
                         required
+                        type="password"
                     >
                 </div>
     
                 <div class="form-group">
                     <label class="form-label" for="pasword">Re-enter Your Password</label>
                     <input 
-                        type="text" 
+                        
                         id="user_name" 
                         name="re_pass" 
                         class="form-input" 
                         placeholder="Confirm your Password"
                         required
+                        type="password"
                     >
                 </div>
 
@@ -109,5 +116,23 @@
             </form>
         </div>
     </div>
+
+    <script>
+        // logic for ensuring user entered strong password like length of the password should be greater than 8 characters and it should contain at least one uppercase letter, one lowercase letter, one number, and one special character
+        document.getElementById('submitBtn').addEventListener('click', function(event) {
+            const password = document.querySelector('input[name="password"]').value;
+            const rePass = document.querySelector('input[name="re_pass"]').value;
+
+            const passwordCriteria = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+            if (!passwordCriteria.test(password)) {
+                event.preventDefault();
+                alert("Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.");
+            } else if (password !== rePass) {
+                event.preventDefault();
+                alert("Passwords do not match!");
+            }
+        });
+    </script>
 </body>
 </html>
