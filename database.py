@@ -9,6 +9,7 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload,HttpError
 import io
 import re
+import json
 load_dotenv()
 
 db_user = os.environ.get('DB_USER')
@@ -23,11 +24,25 @@ engine = create_engine(DB_URL)
 
 # Google Drive API setup
 SCOPES = ['https://www.googleapis.com/auth/drive.file']
-SERVICE_ACCOUNT_FILE = 'service_account.json'
-# FOLDER_ID = '16MnPZcridcMhtDFv8Ohtn4CfFvL48xIm'  # Optional, leave empty if not using a folder
 
-credentials = service_account.Credentials.from_service_account_file(
-    SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+def get_service_account_info_from_env():
+    return {
+        "type": os.environ.get("GOOGLE_TYPE"),
+        "project_id": os.environ.get("GOOGLE_PROJECT_ID"),
+        "private_key_id": os.environ.get("GOOGLE_PRIVATE_KEY_ID"),
+        "private_key": os.environ.get("GOOGLE_PRIVATE_KEY").replace('\\n', '\n'),
+        "client_email": os.environ.get("GOOGLE_CLIENT_EMAIL"),
+        "client_id": os.environ.get("GOOGLE_CLIENT_ID"),
+        "auth_uri": os.environ.get("GOOGLE_AUTH_URI"),
+        "token_uri": os.environ.get("GOOGLE_TOKEN_URI"),
+        "auth_provider_x509_cert_url": os.environ.get("GOOGLE_AUTH_PROVIDER_X509_CERT_URL"),
+        "client_x509_cert_url": os.environ.get("GOOGLE_CLIENT_X509_CERT_URL"),
+        "universe_domain": os.environ.get("GOOGLE_UNIVERSE_DOMAIN"),
+    }
+
+service_account_info = get_service_account_info_from_env()
+credentials = service_account.Credentials.from_service_account_info(
+    service_account_info, scopes=SCOPES)
 drive_service = build('drive', 'v3', credentials=credentials)
 
 
@@ -365,4 +380,3 @@ def modify_note_address(note_id, new_file_path):
     except Exception as e:
         print(f"[ERROR] modify_note_address: {e}")
         return False
-    
