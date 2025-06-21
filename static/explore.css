@@ -5,8 +5,8 @@
 }
 body {
     font-family: 'Manrope', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
-    background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #16213e 100%);
-    color: #e0e6ed;
+    background-color: #0d1117;
+    color: #ffffff;
     min-height: 100vh;
     /* overflow-x: hidden; */
     font-size: 1.08rem;
@@ -56,9 +56,9 @@ body {
     color: #888;
 }
 .filter-group select, .filter-group input[type="text"] {
-    background: rgba(26, 26, 46, 0.8);
-    color: #e0e6ed;
-    border: 1px solid #23243a;
+    background: #0d1117 !important;
+    color: #fff !important;
+    border: 1.5px solid #40e0d0 !important;
     border-radius: 10px;
     padding: 0.5rem 0.9rem;
     font-size: 1rem;
@@ -73,8 +73,8 @@ body.dark-mode .filter-group select, body.dark-mode .filter-group input[type="te
 }
 .filter-btn {
     margin-top: 0.7rem;
-    background: linear-gradient(45deg, #40e0d0, #48cae4);
-    color: #0a0a0f;
+    background: linear-gradient(45deg, #40e0d0, #48cae4) !important;
+    color: #0d1117 !important;
     font-weight: 700;
     border: none;
     border-radius: 10px;
@@ -85,8 +85,8 @@ body.dark-mode .filter-group select, body.dark-mode .filter-group input[type="te
     transition: background 0.18s, transform 0.18s;
 }
 .filter-btn:hover {
-    background: linear-gradient(45deg, #48cae4, #40e0d0);
-    color: #0a0a0f;
+    background: linear-gradient(45deg, #48cae4, #40e0d0) !important;
+    color: #0d1117 !important;
 }
 
 .explore-content {
@@ -260,7 +260,7 @@ body.dark-mode .explore-card {
     margin-bottom: 0.2rem;
 }
 .explore-card .explore-desc {
-    color: #e0e6ed;
+    color: #ccc !important;
     font-size: 0.98rem;
     margin-bottom: 0.2rem;
 }
@@ -302,8 +302,8 @@ body.dark-mode .explore-card .explore-desc {
 .explore-download {
     margin-top: 0.5rem;
     align-self: flex-end;
-    background: linear-gradient(45deg, #40e0d0, #48cae4);
-    color: #0a0a0f;
+    background: linear-gradient(45deg, #40e0d0, #48cae4) !important;
+    color: #0d1117 !important;
     font-weight: 700;
     border-radius: 8px;
     font-size: 1rem;
@@ -316,8 +316,8 @@ body.dark-mode .explore-card .explore-desc {
     gap: 0.5rem;
 }
 .explore-download:hover {
-    background: linear-gradient(45deg, #48cae4, #40e0d0);
-    color: #0a0a0f;
+    background: linear-gradient(45deg, #48cae4, #40e0d0) !important;
+    color: #0d1117 !important;
 }
 
 .cards-grid {
@@ -397,7 +397,8 @@ body.dark-mode .explore-card .explore-desc {
         .card-preview {
             width: 100%;
             height: 120px;
-            background: rgba(16, 16, 32, 0.5);
+            background: #161b22 !important;
+            color: #ccc !important;
             border: 1px solid rgba(64, 224, 208, 0.2);
             border-radius: 8px;
             display: flex;
@@ -411,11 +412,11 @@ body.dark-mode .explore-card .explore-desc {
             align-items: center; 
             justify-content: center;
             min-height: 60px;
-            color: #40e0d0;
+            color: #ffffff74 !important;
             font-size: 0.8rem;
             text-align: center;
             font-style: italic;
-            background: rgba(64,224,208,0.07); 
+            /* background: rgba(64,224,208,0.07) !important;  */
             border-radius: 8px; 
             margin-bottom: 0.7rem; 
             padding: 0.5rem 0.7rem;

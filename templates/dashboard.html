@@ -56,22 +56,26 @@
                     {% if session.details |length != 0 %}
                     {% for note in session.details %}
                     <form method="POST" action="/delete/{{note.id}}">
-                    <div class="card">
-                        <div class="card-icon">📘
-                            <button class="note-action" title="Delete" name="delete" style="margin-left: 180px;">🗑️</button>
-                        </div>
+                    <div class="card" tabindex="0" role="button" aria-label="Download {{ note.sub_name }}" onclick="window.open('{{ note.file_path }}', '_blank')"
+     onkeydown="if(event.key==='Enter'||event.key===' '){window.open('{{ note.file_path }}', '_blank');}">
+                        <div class="card-icon">📘</div>
                         <div class="card-subject">{{ note.sub_name }}</div>
-                        <div class="card-author" style="font-size: 10px;">{{note.description}}</div>
                         <div class="card-tags">
                             <span class="tag">Branch: {{ note.branch }}</span>
                             <span class="tag">Sem: {{ note.sem }}</span>
-                            <span class="tag">Year: {{ note.year }}</span>
                             <span class="tag">Unit: {{ note.unit }}</span>
+                            <span class="tag">Year: {{ note.year }}</span>
                         </div>
                         <div class="card-author">👤 Uploaded by: {{ note.uploaded_by }}</div>
-                        <canvas class="card-preview" id="pdf-preview-{{ loop.index }}"></canvas>
-                        <input type="hidden" class="pdf-path" value="{{ url_for('static', filename=note.file_path.replace('static/', '') ) }}">
-
+                        <div style="font-size: 1rem;margin-bottom: 5px; color: rgba(255, 255, 255, 0.495);">Description: </div>
+                        <div class="card-preview note-description">
+                            {{ note.description if note.description else 'No description provided.' }}
+                        </div>
+                        <form method="post" action="{{ url_for('save_note' if not note.is_saved else 'unsave_note', note_id=note.id) }}" style="display:inline;" onclick="event.stopPropagation();" onkeydown="event.stopPropagation();">
+                            <button type="submit" class="note-action save-btn" style="margin-top: 10px; margin-bottom: 0;">
+                                {% if note.is_saved %}Unsave{% else %}Save{% endif %}
+                            </button>
+                        </form>
                     </div>
                     </form>
                     {% endfor %}

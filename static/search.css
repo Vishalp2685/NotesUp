@@ -5,9 +5,10 @@
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #16213e 100%);
-            color: #e0e6ed;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0d1117;
+            color: #ffffff;
+            line-height: 1.6;
             min-height: 100vh;
             overflow-x: hidden;
         }
@@ -68,18 +69,19 @@
         .logo {
             font-size: 1.5rem;
             font-weight: 700;
-            background: linear-gradient(45deg, #40e0d0, #48cae4);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: #40e0d0;
+            background: none;
+            -webkit-background-clip: unset;
+            -webkit-text-fill-color: unset;
+            background-clip: unset;
         }
 
         .upload-btn {
             padding: 0.75rem 1.5rem;
             background: linear-gradient(45deg, #40e0d0, #48cae4);
+            color: #0d1117;
             border: none;
             border-radius: 8px;
-            color: #0a0a0f;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -122,20 +124,20 @@
         .search-box {
             width: 100%;
             padding: 1.5rem 2rem;
-            background: rgba(26, 26, 46, 0.8);
-            border: 2px solid rgba(64, 224, 208, 0.3);
-            border-radius: 15px;
-            color: #e0e6ed;
-            font-size: 1.1rem;
+            background: #0d1117;
+            color: #fff;
+            border: 1.5px solid #40e0d0;
+            border-radius: 10px;
+            font-size: 1rem;
+            margin-top: 0.2rem;
             outline: none;
-            backdrop-filter: blur(20px);
-            transition: all 1s ease;
+            transition: border 0.2s, box-shadow 0.2s;
             box-shadow: 0 8px 32px rgba(64, 224, 208, 0.1);
         }
 
         .search-box:focus {
-            border-color: #40e0d0;
-            box-shadow: 0 8px 32px rgba(64, 224, 208, 0.3);
+            border-color: #48cae4;
+            box-shadow: 0 0 0 2px #40e0d0;
         }
 
         .search-box::placeholder {
@@ -167,10 +169,11 @@
             font-size: 1.8rem;
             font-weight: 700;
             margin-bottom: 1.5rem;
-            background: linear-gradient(45deg, #40e0d0, #48cae4);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: #40e0d0;
+            background: none;
+            -webkit-background-clip: unset;
+            -webkit-text-fill-color: unset;
+            background-clip: unset;
         }
 
         .cards-grid {
@@ -189,6 +192,8 @@
             cursor: pointer;
             position: relative;
             overflow: hidden;
+            background-color: #161b22;
+            box-shadow: 0 0 10px rgba(64, 224, 208, 0.2);
         }
 
         .card::before {
@@ -242,7 +247,7 @@
         }
 
         .card-author {
-            color: rgba(224, 230, 237, 0.7);
+            color: #ccc;
             font-size: 0.9rem;
             margin-bottom: 1rem;
         }
