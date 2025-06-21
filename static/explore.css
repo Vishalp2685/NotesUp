@@ -415,12 +415,34 @@ body.dark-mode .explore-card .explore-desc {
             color: #ffffff74 !important;
             font-size: 0.8rem;
             text-align: center;
-            font-style: italic;
             /* background: rgba(64,224,208,0.07) !important;  */
             border-radius: 8px; 
             margin-bottom: 0.7rem; 
-            padding: 0.5rem 0.7rem;
+            /* padding: 0.5rem 0.7rem; */
     }
+.card-preview.note-description {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+    max-height: 90px;
+    min-height: 90px;
+    margin-bottom: 0.5rem;
+    /* Custom scrollbar for vertical scroll only */
+    scrollbar-width: thin;
+    scrollbar-color: #40e0d0 #161b22;
+}
+.card-preview.note-description::-webkit-scrollbar {
+    width: 7px;
+    background: #161b22;
+    border-radius: 8px;
+}
+.card-preview.note-description::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #40e0d0 0%, #48cae4 100%);
+    border-radius: 8px;
+}
+.card-preview.note-description::-webkit-scrollbar-thumb:hover {
+    background: #40e0d0;
+}
 
 /* Chatbot Floating Action Button */
 .chatbot-fab {

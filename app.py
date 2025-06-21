@@ -25,7 +25,7 @@ def sign_up():
     try:
         if request.method == 'GET':
             # Clear flashed messages before rendering sign up page
-            session.pop('_flashes', None)
+            # session.pop('_flashes', None)
             return render_template('sign_up.html')
         password = request.form.get('password')
         re_pass = request.form.get('re_pass')
@@ -36,6 +36,7 @@ def sign_up():
             user_name = sanitize_input(request.form.get('user_name'))
             save_in_database = add_user(first_name,last_name,branch,user_name,password)
             if save_in_database:
+                flash('User registered successfully', 'success')
                 return redirect(url_for('login'))
             else:
                 flash('database error occurred or user already exists', 'error')
@@ -84,21 +85,21 @@ def upload():
                         file_path = db.upload_to_drive(file,file_name=filename)
                         if not file_path:
                             print('File upload to Google Drive failed', 'upload_error')
-                            flash('File upload to Google Drive failed') # Upload to Google Drive and get link
+                            # flash('File upload to Google Drive failed') # Upload to Google Drive and get link
                             return redirect(url_for('upload'))
                         if not db.file_data(session['username'], sub_name, branch, sem, year, desc, units[i], filename, file_path):
                             print('Database error occurred', 'upload_error')
                             flash('Database error occurred while saving file data', 'upload_error')
                             return redirect(url_for('upload'))
                     else:
-                        flash('No file selected', 'upload_error')
+                        # flash('No file selected', 'upload_error')
                         print('No file selected', 'upload_error')
                         return redirect(url_for('upload'))
                 print('Files uploaded successfully', 'success')
-                flash('Files uploaded successfully', 'upload_success')
+                # flash('Files uploaded successfully', 'upload_success')
                 return redirect(url_for('upload'))
     except Exception as e:
-        flash(f'Unexpected error: {e}', 'error')
+        # flash(f'Unexpected error: {e}', 'error')
         return redirect(url_for('upload'))
 
 @app.route('/explore', methods=['GET', 'POST'])
@@ -150,7 +151,7 @@ def explore():
             else:
                 return redirect(url_for('login'))
     except Exception as e:
-        flash(f'Error loading explore page: {e}', 'explore_error')
+        # flash(f'Error loading explore page: {e}', 'explore_error')
         return render_template('explore.html', notes=[])
 
 @app.route('/dashboard',methods = ['GET','POST'])
@@ -229,7 +230,7 @@ def delete(id):
                 print("failed to delete file")
         return redirect(url_for('dashboard'))
     except Exception as e:
-        flash(f'Error deleting file: {e}', 'error')
+        # flash(f'Error deleting file: {e}', 'error')
         return redirect(url_for('dashboard'))
 
 
@@ -238,7 +239,6 @@ def login():
     try:
         if request.method == 'GET':
             # Clear flashed messages before rendering login page
-            session.pop('_flashes', None)
             return render_template('login.html')
         else:
             if 'sign-up' in request.form:
@@ -291,9 +291,7 @@ def home():
                 search_query = sanitize_input(request.form.get('q'))
                 session['search_query'] = search_query
                 return redirect(url_for('explore'))
-            
     except Exception as e:
-        flash(f'Error loading home page: {e}', 'error')
         return render_template('home.html')
 
 @app.route('/save_note/<int:note_id>', methods=['POST'])
@@ -301,16 +299,11 @@ def save_note(note_id):
     try:
         user_id = session.get('user_id') or getattr(g, 'user_id', None)
         if not user_id:
-            flash('You must be logged in to save notes.', 'error')
             return redirect(request.referrer or url_for('explore'))
-        if db.is_note_saved_by_user(user_id, note_id):
-            flash('Note already saved.', 'error')
         else:
             db.save_note_for_user(user_id, note_id)
-            flash('Note saved!', 'success')
         return redirect(request.referrer or url_for('explore'))
     except Exception as e:
-        flash(f'Error saving note: {e}', 'error')
         return redirect(request.referrer or url_for('explore'))
 
 @app.route('/unsave_note/<int:note_id>', methods=['POST'])
@@ -318,16 +311,12 @@ def unsave_note(note_id):
     try:
         user_id = session.get('user_id') or getattr(g, 'user_id', None)
         if not user_id:
-            flash('You must be logged in to unsave notes.', 'error')
             return redirect(request.referrer or url_for('explore'))
         if db.is_note_saved_by_user(user_id, note_id):
             db.unsave_note_for_user(user_id, note_id)
-            flash('Note unsaved.', 'success')
-        else:
-            flash('Note was not saved.', 'error')
         return redirect(request.referrer or url_for('explore'))
     except Exception as e:
-        flash(f'Error unsaving note: {e}', 'error')
+        
         return redirect(request.referrer or url_for('explore'))
 
 if __name__ == '__main__':

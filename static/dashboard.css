@@ -235,7 +235,7 @@
             align-items: center;
             justify-content: center;
             color: rgba(224, 230, 237, 0.6);
-            font-size: 0.5rem;
+            font-size: 0.8rem;
         }
         .section-header {
             display: flex;
@@ -550,7 +550,34 @@
             margin-bottom: 1rem;
         }
 
-        /* Responsive */
+        /* Custom scrollbar for note descriptions */
+.card-preview.note-description {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+    max-height: 90px;
+    min-height: 90px;
+    margin-bottom: 0.5rem;
+    color: #ffffff74 !important;
+
+    /* Custom scrollbar for vertical scroll only */
+    scrollbar-width: thin;
+    scrollbar-color: #40e0d0 #161b22;
+}
+.card-preview.note-description::-webkit-scrollbar {
+    width: 7px;
+    background: #161b22;
+    border-radius: 8px;
+}
+.card-preview.note-description::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #40e0d0 0%, #48cae4 100%);
+    border-radius: 8px;
+}
+.card-preview.note-description::-webkit-scrollbar-thumb:hover {
+    background: #40e0d0;
+}
+
+/* Responsive */
         @media (max-width: 768px) {
             .nav {
                 padding: 1rem;
@@ -666,6 +693,14 @@
             margin-bottom: 1rem;
         }
 
+        .fixed-note-card {
+            min-height: 370px;
+            max-height: 370px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            /* Ensures all cards are the same height and content is spaced nicely */
+        }
         .empty-state {
     display: flex;
     flex-direction: column;
