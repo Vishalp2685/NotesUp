@@ -82,6 +82,17 @@
                 handleSearch(e);
             }
         });
+
+        
+    window.addEventListener('pageshow', function (event) {
+        // Check if the page was loaded from the bfcache (back/forward cache)
+        if (event.persisted || performance.getEntriesByType("navigation")[0].type === "back_forward") {
+            // Force reload
+            window.location.reload();
+        }
+    });
+
+
     </script>
 </body>
 </html>

@@ -611,3 +611,62 @@
                 padding: 1.5rem;
             }
         }
+
+        @media (max-width: 900px) {
+        .upload-container {
+            max-width: 98vw;
+            padding: 100px 1vw 2vw;
+        }
+        .upload-card {
+            padding: 1.2rem;
+        }
+    }
+    @media (max-width: 700px) {
+        .upload-container {
+            padding: 80px 0.5rem 1rem;
+        }
+        .upload-card {
+            padding: 0.7rem;
+        }
+        .form-row {
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+        .upload-title {
+            font-size: 1.2rem;
+        }
+        .file-upload-area {
+            padding: 1.2rem 0.5rem;
+        }
+        .selected-files {
+            padding: 0.7rem 0.3rem 0.3rem 0.3rem;
+        }
+        .file-item {
+            padding: 0.4rem 0.3rem;
+        }
+        .unit-select {
+            font-size: 0.95rem;
+            padding: 0.3rem 0.5rem;
+        }
+    }
+    @media (max-width: 480px) {
+        .upload-container {
+            padding: 60px 0.2rem 0.5rem;
+        }
+        .upload-card {
+            padding: 0.3rem;
+        }
+        .upload-title {
+            font-size: 1rem;
+        }
+    }
+    @media (max-width: 400px) {
+        .file-name {
+            max-width: 70px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            display: inline-block;
+            vertical-align: middle;
+        }
+    }

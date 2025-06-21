@@ -21,19 +21,15 @@
 
             {% with error = get_flashed_messages(category_filter = ['upload_error']) %}
             {% if error %}
-                <div class="error-message">
-                    {% for msg in error %}
-                        <p>{{ msg }}</p>
-                    {% endfor %}
+                <div class="error-message show" style="margin-bottom: 1rem; color: #ff4d4f; background: rgba(255,77,79,0.08); border-radius: 8px; padding: 0.7rem 1.2rem; font-weight: 600;">
+                    {{ error[0] }}
                 </div>
             {% endif %}
             {% endwith %}
             {% with success = get_flashed_messages(category_filter = ['upload_success']) %}
             {% if success %}
-                <div class="success-message">
-                    {% for msg in success %}
-                        <p>{{ msg }}</p>
-                    {% endfor %}
+                <div class="success-message show" style="margin-bottom: 1rem; color: #00c853; background: rgba(0,200,83,0.08); border-radius: 8px; padding: 0.7rem 1.2rem; font-weight: 600;">
+                    {{ success[0] }}
                 </div>
             {% endif %}
             {% endwith %}
@@ -103,20 +99,16 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" for="description">Description</label>
-                    <textarea 
-                        id="description" 
-                        name="description" 
-                        class="form-textarea" 
-                        placeholder="Brief description of your notes content, topics covered, etc."
-                    ></textarea>
+                    <label for="description">Description</label>
+                    <textarea id="description" name="description" class="form-textarea" maxlength="1000" rows="4" placeholder="Enter a brief description (max 1000 characters)"></textarea>
+                    <div id="descCounter" style="font-size:0.95rem; color:#888; margin-top:0.2rem;">0/1000</div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Upload Files *</label>
                     <div class="file-upload-area" id="fileUploadArea">
                         <div class="upload-icon">📁</div>
                         <div class="upload-text">Drag & drop your files here</div>
-                        <label class="upload-subtext">or click to browse (PDF, DOC, DOCX, PPT, PPTX - Max 10MB each)</label>
+                        <label class="upload-subtext">or click to browse (PDF, DOC, DOCX, PPT, PPTX - Max 30MB each)</label>
                         <input 
                             type="file" 
                             class="file-input" 
@@ -147,7 +139,7 @@
 
 
         let selectedFiles = [];
-        const maxFileSize = 10 * 1024 * 1024; // 10MB in bytes
+        const maxFileSize = 30 * 1024 * 1024; // 30MB in bytes
         const allowedTypes = ['.pdf', '.doc', '.docx', '.ppt', '.pptx'];
         const unitOptions = [
             { value: '', label: 'Select Unit' },
@@ -190,7 +182,7 @@
             }
             
             if (file.size > maxFileSize) {
-                return `File too large: ${formatFileSize(file.size)} (max: 10MB)`;
+                return `File too large: ${formatFileSize(file.size)} (max: 30MB)`;
             }
             
             return null;
@@ -328,6 +320,13 @@
             }
         });
 
+        // Description character counter
+        const descInput = document.getElementById('description');
+        const descCounter = document.getElementById('descCounter');
+        descInput.addEventListener('input', function() {
+            descCounter.textContent = `${descInput.value.length}/1000`;
+        });
+
         // Form submission handler
         document.getElementById('uploadForm').addEventListener('submit', function(e) {
             if (selectedFiles.length === 0) {
@@ -363,6 +362,13 @@
             submitBtn.disabled = true;
             btnText.textContent = '⏳ Uploading...';
         });
+         window.addEventListener('pageshow', function (event) {
+        // Check if the page was loaded from the bfcache (back/forward cache)
+        if (event.persisted || performance.getEntriesByType("navigation")[0].type === "back_forward") {
+            // Force reload
+            window.location.reload();
+        }
+    });
     </script>
     </body>
 </html>

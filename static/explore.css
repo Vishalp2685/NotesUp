@@ -105,37 +105,61 @@ body.dark-mode .filter-group select, body.dark-mode .filter-group input[type="te
     justify-content: space-between;
     margin-bottom: 1.5rem;
     gap: 1.5rem;
+    width: 100%;
 }
 
 .explore-searchbar {
     flex: 1;
     display: flex;
-    background: rgba(26, 26, 46, 0.8);
-    border-radius: 16px;
-    box-shadow: 0 2px 12px rgba(64, 224, 208, 0.06);
-    padding: 0.2rem 0.5rem 0.2rem 1.1rem;
+    background: rgba(26, 26, 46, 0.95);
+    border-radius: 18px;
+    box-shadow: 0 2px 12px rgba(64, 224, 208, 0.10);
+    padding: 0.3rem 0.7rem 0.3rem 1.2rem;
     align-items: center;
-    border: 1px solid #23243a;
-    max-width: 60%;
-    /* position: fixed; */
-    /* z-index: 99999; */
+    border: 1.5px solid #40e0d0;
+    max-width: 600px;
+    min-width: 220px;
+    width: 100%;
+    transition: box-shadow 0.2s, border 0.2s;
+    position: relative;
+}
+.explore-searchbar:focus-within {
+    box-shadow: 0 4px 24px rgba(64, 224, 208, 0.18);
+    border: 1.5px solid #48cae4;
 }
 .explore-searchbar input[type="text"] {
     flex: 1;
     border: none;
     background: transparent;
-    font-size: 1.1rem;
+    font-size: 1.13rem;
     color: #e0e6ed;
-    padding: 0.7rem 0.5rem 0.7rem 0;
+    padding: 0.8rem 0.5rem 0.8rem 0;
     outline: none;
+    transition: color 0.2s;
 }
-.search-btn {
+.explore-searchbar input[type="text"]::placeholder {
+    color: #b2b2c3;
+    opacity: 1;
+    font-size: 1.08rem;
+}
+.upload-btn.search-btn {
     color: #40e0d0;
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    margin-left: 0.5rem;
+    cursor: pointer;
+    transition: color 0.18s, background 0.18s;
+    border-radius: 50%;
+    padding: 0.4rem 0.7rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
-.search-btn:hover {
+.upload-btn.search-btn:hover, .upload-btn.search-btn:focus {
     color: #48cae4;
+    background: rgba(64,224,208,0.08);
 }
-
 .explore-actions {
     display: flex;
     gap: 0.7rem;
@@ -312,7 +336,7 @@ body.dark-mode .explore-card .explore-desc {
             cursor: pointer;
             position: relative;
             overflow: hidden;
-            /* max-width: 300px */
+            max-width: 300px
         }
 
         .card::before {
@@ -380,9 +404,22 @@ body.dark-mode .explore-card .explore-desc {
             align-items: center;
             justify-content: center;
             color: rgba(224, 230, 237, 0.6);
-            font-size: 0.9rem;
+            font-size: 0.5rem;
         }
-
+        .note-description {
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            min-height: 60px;
+            color: #40e0d0;
+            font-size: 0.8rem;
+            text-align: center;
+            font-style: italic;
+            background: rgba(64,224,208,0.07); 
+            border-radius: 8px; 
+            margin-bottom: 0.7rem; 
+            padding: 0.5rem 0.7rem;
+    }
 
 /* Chatbot Floating Action Button */
 .chatbot-fab {
@@ -422,43 +459,87 @@ body.dark-mode .explore-card .explore-desc {
         max-width: 100%;
         min-width: unset;
         flex-direction: row;
-        gap: 1.5rem;
+        flex-wrap: wrap;
+        gap: 1rem;
         margin-bottom: 1.5rem;
+        width: 100%;
+        justify-content: flex-start;
+        align-items: flex-start;
+        background: none;
+        box-shadow: none;
+        padding: 0;
+    }
+    .explore-filters {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        align-items: flex-end;
+        background: rgba(10, 10, 15, 0.9);
+        border-radius: 18px;
+        box-shadow: 0 2px 16px 0 #23243a;
+        padding: 1.2rem 1rem;
+    }
+    .explore-filters .filter-title {
+        flex-basis: 100%;
+        margin-bottom: 0.7rem;
+    }
+    .explore-filters .filter-group {
+        flex: 1 1 180px;
+        min-width: 120px;
+        margin-bottom: 0;
+    }
+    .explore-filters .filter-btn {
+        flex: 0 0 auto;
+        margin-top: 0;
+        height: 2.5rem;
     }
 }
 @media (max-width: 700px) {
     .explore-header-bar {
         flex-direction: column;
         gap: 1rem;
+        width: 100%;
+    }
+    .explore-searchbar {
+        max-width: 100%;
+        min-width: 300px;
+        width: 100%;
+        padding: 0.2rem 0.4rem 0.2rem 0.7rem;
+    }
+    .explore-searchbar input[type="text"] {
+        font-size: 1rem;
+        padding: 0.6rem 0.3rem 0.6rem 0;
     }
     .explore-sidebar {
         padding: 1rem 0.7rem;
+        flex-direction: column;
+        gap: 1rem;
+        width: 100%;
+        align-items: stretch;
     }
-    .explore-content {
-        padding: 0;
+    .explore-filters {
+        /* flex-direction: column; */
+        gap: 0.7rem;
+        width: 100%;
+    }
+    .explore-filters .filter-group {
+        min-width: unset;
+        width: 100%;
+    }
+}
+@media (max-width: 500px) {
+    .explore-sidebar {
+        padding: 0.5rem 0.2rem;
+    }
+    .explore-filters {
+        gap: 0.5rem;
+    }
+    .explore-filters .filter-group {
+        width: 100%;
     }
 }
 
-
-note-actions {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .note-action {
-            padding: 0.25rem;
-            border: none;
-            background: none;
-            color: rgba(224, 230, 237, 0.6);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border-radius: 4px;
-        }
-
-        .note-action:hover {
-            color: #40e0d0;
-            background: rgba(64, 224, 208, 0.1);
-        }
 @media (max-width: 600px) {
     .explore-grid, .trending-grid {
         grid-template-columns: 1fr;
@@ -474,3 +555,39 @@ note-actions {
         padding: 0.5rem 0.2rem;
     }
 }
+
+.card[tabindex="0"]:focus {
+    outline: 2px solid #40e0d0;
+}
+
+.card .note-action.save-btn {
+    z-index: 2;
+    position: relative;
+}
+
+.note-action {
+    padding: 0.25rem;
+    border: none;
+    background: none;
+    color: rgba(224, 230, 237, 0.6);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 4px;
+    }
+
+.note-action:hover {
+    color: #40e0d0;
+    background: rgba(64, 224, 208, 0.1);
+    }
+.card form {
+    display: inline;
+}
+
+.card button.note-action.save-btn {
+    pointer-events: auto;
+}
+
+.card button.note-action.save-btn:focus {
+    outline: 2px solid #40e0d0;
+}
+

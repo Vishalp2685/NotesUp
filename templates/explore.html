@@ -86,15 +86,18 @@
      onkeydown="if(event.key==='Enter'||event.key===' '){window.open('{{ note.file_path }}', '_blank');}">
                         <div class="card-icon">📘</div>
                         <div class="card-subject">{{ note.sub_name }}</div>
-                        <div class="card-author" style="font-size: 10px;">{{note.description}}</div>
                         <div class="card-tags">
                             <span class="tag">Branch: {{ note.branch }}</span>
                             <span class="tag">Sem: {{ note.sem }}</span>
+                            <span class="tag">Unit: {{ note.unit }}</span>
                             <span class="tag">Year: {{ note.year }}</span>
                         </div>
                         <div class="card-author">👤 Uploaded by: {{ note.uploaded_by }}</div>
-                        <canvas class="card-preview" id="pdf-preview-{{ loop.index }}"></canvas>
-                        <form method="post" action="{{ url_for('save_note' if not note.is_saved else 'unsave_note', note_id=note.id) }}" style="display:inline;">
+                        <div style="font-size: 1rem;margin-bottom: 5px; color: rgba(255, 255, 255, 0.495);">Description: </div>
+                        <div class="card-preview note-description">
+                            {{ note.description if note.description else 'No description provided.' }}
+                        </div>
+                        <form method="post" action="{{ url_for('save_note' if not note.is_saved else 'unsave_note', note_id=note.id) }}" style="display:inline;" onclick="event.stopPropagation();" onkeydown="event.stopPropagation();">
                             <button type="submit" class="note-action save-btn" style="margin-top: 10px; margin-bottom: 0;">
                                 {% if note.is_saved %}Unsave{% else %}Save{% endif %}
                             </button>
@@ -106,5 +109,15 @@
         </main>
     </div>
 </body>
+<script>
+    window.addEventListener('pageshow', function (event) {
+        // Check if the page was loaded from the bfcache (back/forward cache)
+        if (event.persisted || performance.getEntriesByType("navigation")[0].type === "back_forward") {
+            // Force reload
+            window.location.reload();
+        }
+    });
+</script>
+
 
 </html>

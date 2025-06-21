@@ -358,25 +358,3 @@ def get_user_id(username):
         print(f"[ERROR] get_user_id: {e}")
         return None
 
-def get_note_by_id(note_id):
-    """Get a note's details by its id from uploaded_files."""
-    try:
-        query = text("SELECT * FROM uploaded_files WHERE id = :note_id")
-        with engine.connect() as conn:
-            result = conn.execute(query, {"note_id": note_id}).mappings().first()
-        return result
-    except Exception as e:
-        print(f"[ERROR] get_note_by_id: {e}")
-        return None
-
-def modify_note_address(note_id, new_file_path):
-    """Modify the file path of a note."""
-    try:
-        query = text("UPDATE uploaded_files SET file_path = :new_file_path WHERE id = :note_id")
-        with engine.connect() as conn:
-            result = conn.execute(query, {"new_file_path": new_file_path, "note_id": note_id})
-            conn.commit()
-        return result.rowcount > 0
-    except Exception as e:
-        print(f"[ERROR] modify_note_address: {e}")
-        return False

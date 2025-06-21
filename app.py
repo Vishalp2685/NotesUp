@@ -112,13 +112,11 @@ def explore():
             if session.get('search_query'):
                 q = session['search_query']
                 session.pop('search_query', None)  # Clear search query after use
-                print("session notes ")
+                
             else:
                 q = sanitize_input(request.args.get('q', '')) or None
-            print(f"Explore page accessed with year={year}, branch={branch}, sem={sem}, subject={subject}, q={q}")
             notes = db.get_explore_notes(year=year, branch=branch, sem=sem, subject=subject, q=q)
             notes = notes[::-1]
-            print(f"Retrieved {len(notes)} notes from the database")
             formatted_notes = []
             user_id = session.get('user_id')
             saved_note_ids = set()
@@ -149,12 +147,17 @@ def explore():
                 return redirect(url_for('login'))
             elif 'upload' in req_form:
                 return redirect(url_for('upload'))
+            else:
+                return redirect(url_for('login'))
     except Exception as e:
         flash(f'Error loading explore page: {e}', 'explore_error')
         return render_template('explore.html', notes=[])
 
 @app.route('/dashboard',methods = ['GET','POST'])
 def dashboard():
+    if not session.get("login"):
+        return redirect(url_for("login"))
+
     try:
         if request.method == 'GET':
             if 'login' in session:
@@ -164,6 +167,10 @@ def dashboard():
             else:
                 return redirect(url_for('login'))
             details = []
+            user_id = session.get('user_id')
+            saved_note_ids = set()
+            if user_id:
+                saved_note_ids = set(db.get_saved_notes_for_user(user_id) or [])
             if data:
                 for row in data:
                     row_dict = dict(row)
@@ -174,22 +181,24 @@ def dashboard():
             else:
                 session['details'] = []
             user_details = db.get_user_details(session['username'])
-            # Fetch saved notes for the user
-            user_id = session.get('user_id')
+            # Fetch all saved notes for the user in a single query
             saved_notes = []
-            if user_id:
-                saved_note_ids = db.get_saved_notes_for_user(user_id)
+            if user_id and saved_note_ids:
+                # Fetch all note details in a single query for all saved_note_ids
                 if saved_note_ids:
-                    # Fetch note details for each saved note id
-                    for note_id in saved_note_ids:
-                        note_row = db.get_note_by_id(note_id)
-                        if note_row:
-                            note_dict = dict(note_row)
-                            if 'uploaded_at' in note_dict and note_dict['uploaded_at']:
-                                note_dict['uploaded_at'] = note_dict['uploaded_at'].isoformat() if hasattr(note_dict['uploaded_at'], 'isoformat') else note_dict['uploaded_at']
-                            if 'file_path' in note_dict:
-                                note_dict['file_path'] = note_dict['file_path'].replace('\\', '/')
-                            saved_notes.append(note_dict)
+                    placeholders = ','.join([':id'+str(i) for i in range(len(saved_note_ids))])
+                    params = {('id'+str(i)): note_id for i, note_id in enumerate(saved_note_ids)}
+                    query = f"SELECT * FROM uploaded_files WHERE id IN ({placeholders})"
+                    from sqlalchemy import text as sa_text
+                    with db.engine.connect() as conn:
+                        result = conn.execute(sa_text(query), params).mappings().all()
+                    for note_row in result:
+                        note_dict = dict(note_row)
+                        if 'uploaded_at' in note_dict and note_dict['uploaded_at']:
+                            note_dict['uploaded_at'] = note_dict['uploaded_at'].isoformat() if hasattr(note_dict['uploaded_at'], 'isoformat') else note_dict['uploaded_at']
+                        if 'file_path' in note_dict:
+                            note_dict['file_path'] = note_dict['file_path'].replace('\\', '/')
+                        saved_notes.append(note_dict)
             return render_template('dashboard.html', user_details=user_details, saved_notes=saved_notes)
         else:
             req_form = request.form
@@ -234,8 +243,8 @@ def login():
         else:
             if 'sign-up' in request.form:
                 return redirect(url_for('sign_up'))
-            user_name = request.form.get('user_name')
-            password = request.form.get('password')
+            user_name = request.form.get('user_name').strip()
+            password = request.form.get('password').strip()
             user = db.validate(username=user_name,password=password)
             if user:
                 session['login'] = True
