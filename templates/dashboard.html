@@ -27,7 +27,7 @@
             </div>
         </div>
 
-        <div class="dashboard-content">
+        <!-- <div class="dashboard-content"> -->
             <div class="content-section">
                 <div class="section-header">
                     <h2 class="section-title">My Notes</h2>
@@ -42,11 +42,15 @@
                     <div class="tab active" onclick="switchTab('uploaded')">Uploaded ({{session.details|length}})</div>
                     <div class="tab" onclick="switchTab('saved')">Saved ({{ saved_notes|length }})</div>
                 </div>
-
                 <div class="cards-grid" id="notesContainer">
                     {% if session.details |length == 0 %}
-                    <div style="display: flex; justify-content: center; align-items: center; width: 100%; text-align: center; font-size: 1.2rem; color: #ccc; margin-left: 480px;margin-top: 25%;">
-                        Your uploaded notes will appear here
+                    <div class="empty-state">
+                        <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f4dd.svg" alt="Upload Notes" class="empty-img" />
+                        <div class="empty-title">You haven't uploaded any notes yet!</div>
+                        <div class="empty-desc">Share your knowledge and help others by uploading your first note.</div>
+                        <form method="POST">
+                            <button class="btn btn-primary empty-btn" name="upload">📤 Upload Notes</button>
+                        </form>
                     </div>
                     {% endif %}
                     {% if session.details |length != 0 %}
@@ -62,9 +66,7 @@
                             <span class="tag">Branch: {{ note.branch }}</span>
                             <span class="tag">Sem: {{ note.sem }}</span>
                             <span class="tag">Year: {{ note.year }}</span>
-                            {% if note.unit is not none %}
-                            <span class="tag">unit: {{ note.unit }}</span>
-                            {% endif %}
+                            <span class="tag">Unit: {{ note.unit }}</span>
                         </div>
                         <div class="card-author">👤 Uploaded by: {{ note.uploaded_by }}</div>
                         <canvas class="card-preview" id="pdf-preview-{{ loop.index }}"></canvas>
@@ -78,8 +80,11 @@
 
                 <div class="cards-grid" id="savedNotesContainer" style="display:none; margin-top:2rem;">
                     {% if saved_notes|length == 0 %}
-                    <div style="display: flex; justify-content: center; align-items: center; width: 100%; text-align: center; font-size: 1.2rem; color: #ccc; margin-left: 480px;margin-top: 25%;">
-                        You haven't saved any notes yet.
+                    <div class="empty-state">
+                        <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f516.svg" alt="Save Notes" class="empty-img" />
+                        <div class="empty-title">You haven't saved any notes yet!</div>
+                        <div class="empty-desc">Explore and save notes you find useful for quick access here.</div>
+                        <a href="{{ url_for('explore') }}" class="btn btn-primary empty-btn">🔍 Explore Notes</a>
                     </div>
                     {% endif %}
                     {% for note in saved_notes %}
@@ -105,7 +110,7 @@
                     {% endfor %}
                 </div>
 
-            </div>
+            <!-- </div> -->
         </div>
     </main>
 
@@ -171,7 +176,7 @@
             });
         });
     });
-    
+
     window.addEventListener('pageshow', function (event) {
         // Check if the page was loaded from the bfcache (back/forward cache)
         if (event.persisted || performance.getEntriesByType("navigation")[0].type === "back_forward") {
