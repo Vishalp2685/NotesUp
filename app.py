@@ -111,7 +111,7 @@ def explore():
             sem = sanitize_input(request.args.get('sem', '')) or None
             subject = sanitize_input(request.args.get('subject', '')) or None
             if session.get('search_query'):
-                q = session['search_query']
+                q = sanitize_input(session['search_query']) or None
                 session.pop('search_query', None)  # Clear search query after use
                 
             else:
@@ -299,12 +299,12 @@ def save_note(note_id):
     try:
         user_id = session.get('user_id') or getattr(g, 'user_id', None)
         if not user_id:
-            return redirect(request.referrer or url_for('explore'))
+            return redirect(url_for('login'))
         else:
             db.save_note_for_user(user_id, note_id)
-        return redirect(request.referrer or url_for('explore'))
+        return redirect(url_for('explore'))
     except Exception as e:
-        return redirect(request.referrer or url_for('explore'))
+        return redirect(url_for('explore'))
 
 @app.route('/unsave_note/<int:note_id>', methods=['POST'])
 def unsave_note(note_id):
@@ -316,7 +316,6 @@ def unsave_note(note_id):
             db.unsave_note_for_user(user_id, note_id)
         return redirect(request.referrer or url_for('explore'))
     except Exception as e:
-        
         return redirect(request.referrer or url_for('explore'))
 
 if __name__ == '__main__':
