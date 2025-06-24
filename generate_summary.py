@@ -149,18 +149,21 @@ def generate_description_from_text(text):
     try:
         client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
         prompt = (
-            "I will provide you with a small portion of text from some study notes. "
-            "Your task is to read and understand the content, and then generate a short, clear description "
-            "of what the full notes are likely about. The description should be 2–3 sentences long, summarize "
-            "the overall topic and purpose of the notes, and be suitable for displaying as a preview or caption "
-            "on a notes-sharing platform. Use simple, professional language that helps students quickly understand "
-            "what the notes cover. Do not include exact sentences from the original text—paraphrase instead. "
-            "Avoid unnecessary details and stay focused on the main subject."
-            "If the input is empty or not enough to genrate description the return Not enough data ro generate summary."
-            "You have to determine if the content provided is a from a notes or a question bank, if from the question bank return a description stating something like this 'This is a set of question bank of subject_name, containing ....'"
-            "return the same message if the input contains stuff other than the education syllabus."
-            "Do not entertain anything except for generating a good description"
+            "I will provide you with a small portion of text from some study material. "
+            "Your task is to analyze the content and generate a short, clear description of what the full material is likely about. "
+            "The description should be 2–3 sentences long, summarizing the overall topic and purpose, and suitable as a preview or caption for a notes-sharing platform. "
+            "Use simple, professional language that helps students quickly understand what the content covers. "
+            "Do not copy exact sentences—paraphrase instead. Avoid unnecessary details and stay focused on the main subject. "
+
+            "If the input is empty or too short to understand the context, return this message: 'Not enough data to generate a description.' "
+
+            "If the content seems to be from a question bank, return a description like: 'This is a set of question bank for [subject_name], containing important questions for practice and review.' "
+
+            "If the input appears unrelated to academic content, or contains irrelevant or non-syllabus-based material, return the same message: 'Not enough data to generate a description.' "
+
+            "Your only job is to generate a meaningful description or handle the input based on these instructions—do not do anything else."
         )
+
         response = client.models.generate_content(
             model="gemma-3-27b-it",
             contents=prompt + "\n\n" + text
