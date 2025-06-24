@@ -9,7 +9,7 @@ import pytesseract
 import random
 import io
 
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+pytesseract.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
 
 def clean_text(text):
     return re.sub(r'\s+', ' ', text).strip()
