@@ -10,4 +10,9 @@ google-api-python-client
 google-auth
 google-auth-oauthlib
 google-auth-httplib2
+google-genai
+python-docx 
+python-pptx 
+PyMuPDF
+pytesseract
 gunicorn

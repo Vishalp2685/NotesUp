@@ -66,7 +66,7 @@
         <main class="explore-content">
             <div class="explore-header-bar">
                 <form class="explore-searchbar" method="GET">
-                    <input type="text" name="q" placeholder="Search notes, subjects, or papers…" value="{{ request.args.get('q', '') }}">
+                    <input type="text" name="q" placeholder="Search notes, subjects, or papers…" value="{{ request.args.get('q' , '')}}" required>
                     <button type="submit" class="upload-btn search-btn" >🔍</button>
                 </form>
             </div>
@@ -77,14 +77,56 @@
                     <div style="font-size:3rem;">📭</div>
                     <h2 style="color:#40e0d0; margin:1rem 0 0.5rem 0;">No notes found</h2>
                     <p style="color:#b2b2c3; font-size:1.1rem;">Try searching for different notes or <a href="{{ url_for('upload') }}" style="color:#48cae4; text-decoration:underline; font-weight:600;">upload one</a> to help others!</p>
-                    <div style="margin-top:1.2rem; font-size:1.3rem; color:#888;">"Knowledge shared is knowledge multiplied."</div>
+                    <div style="margin-top:1.2rem; font-size:1.3rem; color:#888;">"Knowledge shared is knowledge multiplied."</div> 
                 </div>
                 {% endif %}
                 <div class="cards-grid">
                     {% for note in notes %}
-                    <div class="card" tabindex="0" role="button" aria-label="Download {{ note.sub_name }}" onclick="window.open('{{ note.file_path }}', '_blank')"
-     onkeydown="if(event.key==='Enter'||event.key===' '){window.open('{{ note.file_path }}', '_blank');}">
-                        <div class="card-icon">📘</div>
+                    <div class="card">
+                        <div class="parent">
+                            <div class="save-btn note-action download-icon"  
+                            tabindex="0" 
+                            role="button" 
+                            aria-label="Download {{ note.sub_name }}" 
+                            onclick="window.open('https://drive.google.com/uc?export=download&id={{ note.file_path }}', '_blank')"
+                            onkeydown="if(event.key==='Enter'||event.key===' '){window.open('https://drive.google.com/uc?export=download&id={{ note.file_path }}', '_blank');}">
+                                <svg width="30" height="30" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="download-icon" style="cursor: pointer;">
+                                    <style>
+                                        .download-icon path {
+                                        stroke:rgba(224, 230, 237, 0.6);
+                                        transition: stroke 0.3s ease;
+                                        }
+                                        .download-icon:hover path {
+                                        stroke: #40e0d0; /* Hover color (Hot Pink) */
+                                        }
+                                    </style>
+                                    <path d="M12 3V15M12 15L7 10M12 15L17 10" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M5 20H19" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+    
+    </div>
+         <form method="post"
+      action="{{ url_for('save_note' if not note.is_saved else 'unsave_note', note_id=note.id) }}" 
+      style="display:inline;" 
+      onclick="event.stopPropagation();" 
+      onkeydown="event.stopPropagation();">
+  <button type="submit" class="note-action save-btn" aria-label="{% if note.is_saved %}Unsave{% else %}Save{% endif %}">
+    {% if note.is_saved %}
+      <!-- Filled SVG for saved -->
+      <svg class="bookmark-icon saved" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M6 4C6 2.89543 6.89543 2 8 2H16C17.1046 2 18 2.89543 18 4V20L12 16L6 20V4Z"/>
+      </svg>
+    {% else %}
+      <!-- Outline SVG for unsaved -->
+      <svg class="bookmark-icon unsaved" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M6 4C6 2.89543 6.89543 2 8 2H16C17.1046 2 18 2.89543 18 4V20L12 16L6 20V4Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    {% endif %}
+  </button>
+</form>
+
+                        </form>
+                        </div>
                         <div class="card-subject" style="font-size: 1rem;">{{ note.sub_name }}</div>
                         <div class="card-tags">
                             <span class="tag">Branch: {{ note.branch }}</span>
@@ -94,14 +136,9 @@
                         </div>
                         <div class="card-author">👤 Uploaded by: {{ note.uploaded_by }}</div>
                         <div style="font-size: 1rem;margin-bottom: 5px; color: rgba(255, 255, 255, 0.495);">Description: </div>
-                        <div class="card-preview note-description">
+                        <div class="card-preview">
                             {{ note.description if note.description else 'No description provided.' }}
                         </div>
-                        <form method="post" action="{{ url_for('save_note' if not note.is_saved else 'unsave_note', note_id=note.id) }}" style="display:inline;" onclick="event.stopPropagation();" onkeydown="event.stopPropagation();">
-                            <button type="submit" class="note-action save-btn" style="margin-top: 10px; margin-bottom: 0;">
-                                {% if note.is_saved %}Unsave{% else %}Save{% endif %}
-                            </button>
-                        </form>
                     </div>
                     {% endfor %}
                 </div>

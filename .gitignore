@@ -13,3 +13,6 @@ static/uploads/
 # OS
 Thumbs.db
 service_accounts.json
+temp.py
+test.txt
+try.ipynb

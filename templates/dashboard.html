@@ -56,11 +56,57 @@
                     {% if session.details |length != 0 %}
                     {% for note in session.details %}
                     <form method="POST" action="/delete/{{note.id}}" onsubmit="event.stopPropagation();">
-                    <div class="card fixed-note-card" tabindex="0" role="button" aria-label="Download {{ note.sub_name }}"
-                         onclick="if(event.target.tagName !== 'BUTTON'){window.open('{{ note.file_path }}', '_blank');}"
-                         onkeydown="if((event.key==='Enter'||event.key===' ') && event.target.tagName !== 'BUTTON'){window.open('{{ note.file_path }}', '_blank');}">
-                        <div class="card-icon">📘
-                        <button class="note-action" title="Delete" name="delete" type="submit" style="margin-left: 180px;" onclick="event.stopPropagation();">🗑️</button>
+                    <div class="card fixed-note-card" tabindex="0" role="button" aria-label="Download {{ note.sub_name }}">
+                        <div class="parent"><div class="download-icon note-action"  
+                            tabindex="0" 
+                            role="button" 
+                            aria-label="Download {{ note.sub_name }}" 
+                            onclick="window.open('https://drive.google.com/uc?export=download&id={{ note.file_path }}', '_blank')"
+                            onkeydown="if(event.key==='Enter'||event.key===' '){window.open('https://drive.google.com/uc?export=download&id={{ note.file_path }}', '_blank');}">
+                                <svg width="30" height="30" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="download-icon" style="cursor: pointer;">
+                                    <style>
+                                        .download-icon path {
+                                        stroke:rgba(224, 230, 237, 0.6);
+                                        transition: stroke 0.3s ease;
+                                        }
+                                        .download-icon:hover path {
+                                        stroke: #40e0d0; /* Hover color (Hot Pink) */
+                                        }
+                                    </style>
+                                    <path d="M12 3V15M12 15L7 10M12 15L17 10" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M5 20H19" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                                </div>
+                            
+                        <button 
+                            class="note-action save-btn" 
+                            title="Delete" name="delete" 
+                            type="submit" 
+                            onclick="event.stopPropagation();" 
+                            >
+                            <svg class="delete-icon"width="20px" height="20px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                    <g id="Dribbble-Light-Preview" transform="translate(-179.000000, -360.000000)" fill="currentColor">
+                                        <g id="icons" transform="translate(56.000000, 160.000000)">
+                                            <path d="M130.35,216 L132.45,216 L132.45,208 L130.35,208 L130.35,216 Z M134.55,216 L136.65,216 L136.65,208 L134.55,208 L134.55,216 Z M128.25,218 L138.75,218 L138.75,206 L128.25,206 L128.25,218 Z M130.35,204 L136.65,204 L136.65,202 L130.35,202 L130.35,204 Z M138.75,204 L138.75,200 L128.25,200 L128.25,204 L123,204 L123,206 L126.15,206 L126.15,220 L140.85,220 L140.85,206 L144,206 L144,204 L138.75,204 Z" id="delete-[#1487]"></path>
+                                        </g>
+                                    </g>
+                                </g>
+                            </svg>
+                            <style>
+                                .delete-icon {
+                                    width: 28px;
+                                    height: 28px;
+                                    fill: rgba(255, 255, 255, 0.495);
+                                    transition: fill 0.3s ease;
+                                    cursor: pointer;
+                                }
+
+                                .delete-icon:hover {
+                                    fill: red;
+                                }
+                                </style>
+                        </button>
                         </div>
                         <div class="card-subject" style="font-size: 1rem;">{{ note.sub_name }}</div>
                         <div class="card-tags">
@@ -71,7 +117,7 @@
                         </div>
                         <div class="card-author">👤 Uploaded by: {{ note.uploaded_by }}</div>
                         <div style="font-size: 1rem;margin-bottom: 5px; color: rgba(255, 255, 255, 0.495);">Description: </div>
-                        <div class="card-preview note-description">
+                        <div class="card-preview">
                             {{ note.description if note.description else 'No description provided.' }}
                         </div>
                     </div>
@@ -91,11 +137,26 @@
                     {% endif %}
                     {% for note in saved_notes %}
                     <form method="POST" action="/unsave_note/{{note.id}}" onsubmit="event.stopPropagation();">
-                    <div class="card fixed-note-card" tabindex="0" role="button" aria-label="Download {{ note.sub_name }}"
-                         onclick="if(event.target.tagName !== 'BUTTON'){window.open('{{ note.file_path }}', '_blank');}"
-                         onkeydown="if((event.key==='Enter'||event.key===' ') && event.target.tagName !== 'BUTTON'){window.open('{{ note.file_path }}', '_blank');}">
-                        <div class="card-icon">💾
-                        </div>
+                    <div class="card fixed-note-card" tabindex="0" role="button" aria-label="Download {{ note.sub_name }}">
+                        <div class="save-btn note-action download-icon"  
+                            tabindex="0" 
+                            role="button" 
+                            aria-label="Download {{ note.sub_name }}" 
+                            onclick="window.open('https://drive.google.com/uc?export=download&id={{ note.file_path }}', '_blank')"
+                            onkeydown="if(event.key==='Enter'||event.key===' '){window.open('https://drive.google.com/uc?export=download&id={{ note.file_path }}', '_blank');}">
+                                <svg width="30" height="30" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="download-icon" style="cursor: pointer;">
+                                    <style>
+                                        .download-icon path {
+                                        stroke:rgba(224, 230, 237, 0.6);
+                                        transition: stroke 0.3s ease;
+                                        }
+                                        .download-icon:hover path {
+                                        stroke: #40e0d0; /* Hover color (Hot Pink) */
+                                        }
+                                    </style>
+                                    <path d="M12 3V15M12 15L7 10M12 15L17 10" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M5 20H19" stroke-width="2" stroke-linecap="round"/>
+                                </svg></div>
                         <div class="card-subject" style="font-size: 1rem;">{{ note.sub_name }}</div>
                         <div class="card-tags">
                             <span class="tag">Branch: {{ note.branch }}</span>
@@ -105,7 +166,7 @@
                         </div>
                         <div class="card-author">👤 Uploaded by: {{ note.uploaded_by }}</div>
                         <div style="font-size: 1rem;margin-bottom: 5px; color: rgba(255, 255, 255, 0.495);">Description: </div>
-                        <div class="card-preview note-description">
+                        <div class="card-preview">
                             {{ note.description if note.description else 'No description provided.' }}
                         </div>
                         <button class="note-action" title="Unsave" name="unsave" type="submit" onclick="event.stopPropagation();">Remove from Saved</button>

@@ -5,7 +5,14 @@ import os
 from flask import send_from_directory,abort
 import re
 from flask import g
-# Remove hardcoded secret key and use environment variable
+import generate_summary
+import requests
+import threading
+from sqlalchemy import text as sa_text
+
+app = Flask(__name__)
+app.secret_key = 'your_secret_key'
+
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY')
 
@@ -48,6 +55,34 @@ def sign_up():
         flash(f'Unexpected error: {e}', 'error')
         return render_template('sign_up.html')
 
+
+def download_file_from_google_drive(file_id, file_name):
+    URL = "https://drive.google.com/uc?export=download"
+    file_path = f"temp/{file_name}"
+    session = requests.Session()
+    response = session.get(URL, params={'id': file_id}, stream=True)
+    try:
+        with open(file_path, "wb") as f:
+            for chunk in response.iter_content(32768):
+                if chunk:
+                    f.write(chunk)
+        return True
+    except Exception as e:
+        print("Error while saving the file saving in temp")
+        return False
+def background_summary_worker(uploaded_by, filename, local_path,file_path):
+    try:
+        text = generate_summary.extract_text_from_file(local_path)
+        summary = generate_summary.generate_description_from_text(text)
+        db.save_summary(uploaded_by,summary,file_path)
+
+        os.remove(local_path)  # Clean up temp file
+        print(f"[INFO] Summary generated and saved for {filename}")
+    except Exception as e:
+        print(f"[ERROR] Summary generation failed for {filename}: {e}")
+
+
+
 @app.route('/upload',methods=['GET','POST'])
 def upload():
     try:
@@ -76,13 +111,22 @@ def upload():
                 desc = sanitize_input(request.form.get('description'))
                 files = request.files.getlist('files')
                 units = []
+                if desc:
+                    generate_summary = False
+                else:
+                    generate_summary =True
                 for idx in range(len(files)):
                     unit = request.form.get(f'unit_for_file_{idx}')
                     units.append(unit)
+                
                 for i, file in enumerate(files):
                     if file:
                         filename = secure_filename(file.filename)
-                        file_path = db.upload_to_drive(file,file_name=filename)
+                        temp_path = os.path.join("temp", filename)
+                        file.save(temp_path)
+                        with open(temp_path,'rb') as f:
+                            file_path = db.upload_to_drive(f,file_name=filename)
+                        print(f"filepath{file_path}")
                         if not file_path:
                             print('File upload to Google Drive failed', 'upload_error')
                             # flash('File upload to Google Drive failed') # Upload to Google Drive and get link
@@ -91,12 +135,21 @@ def upload():
                             print('Database error occurred', 'upload_error')
                             flash('Database error occurred while saving file data', 'upload_error')
                             return redirect(url_for('upload'))
+                        if generate_summary:
+                        # Background summary generation thread
+                            thread = threading.Thread(
+                                target=background_summary_worker,
+                                args=(session['username'], filename, temp_path,file_path)
+                            )
+                            thread.start()
                     else:
                         # flash('No file selected', 'upload_error')
                         print('No file selected', 'upload_error')
                         return redirect(url_for('upload'))
+                    # download  the file from drive to genrate description
+                    download_file_from_google_drive
                 print('Files uploaded successfully', 'success')
-                # flash('Files uploaded successfully', 'upload_success')
+                flash('Files uploaded successfully', 'upload_success')
                 return redirect(url_for('upload'))
     except Exception as e:
         # flash(f'Unexpected error: {e}', 'error')
@@ -113,11 +166,12 @@ def explore():
             if session.get('search_query'):
                 q = sanitize_input(session['search_query']) or None
                 session.pop('search_query', None)  # Clear search query after use
-                
             else:
                 q = sanitize_input(request.args.get('q', '')) or None
             notes = db.get_explore_notes(year=year, branch=branch, sem=sem, subject=subject, q=q)
             notes = notes[::-1]
+            if not year and not branch and not sem and not subject and not q:
+                notes = notes[:10]
             formatted_notes = []
             user_id = session.get('user_id')
             saved_note_ids = set()
@@ -149,6 +203,7 @@ def explore():
             elif 'upload' in req_form:
                 return redirect(url_for('upload'))
             else:
+                session.clear()
                 return redirect(url_for('login'))
     except Exception as e:
         # flash(f'Error loading explore page: {e}', 'explore_error')
@@ -190,7 +245,6 @@ def dashboard():
                     placeholders = ','.join([':id'+str(i) for i in range(len(saved_note_ids))])
                     params = {('id'+str(i)): note_id for i, note_id in enumerate(saved_note_ids)}
                     query = f"SELECT * FROM uploaded_files WHERE id IN ({placeholders})"
-                    from sqlalchemy import text as sa_text
                     with db.engine.connect() as conn:
                         result = conn.execute(sa_text(query), params).mappings().all()
                     for note_row in result:
@@ -258,7 +312,7 @@ def login():
                 flash('Invalid username or password', 'error')
                 return redirect(url_for('login'))
     except Exception as e:
-        flash(f'Login error: {e}', 'error')
+        flash(f'Login error, Please try again', 'error')
         return redirect(url_for('login'))
 
 @app.route('/',methods = ['GET','POST'])
@@ -302,9 +356,10 @@ def save_note(note_id):
             return redirect(url_for('login'))
         else:
             db.save_note_for_user(user_id, note_id)
-        return redirect(url_for('explore'))
+            print(request.args.get("q"))
+        return redirect(request.referrer or url_for('explore'))
     except Exception as e:
-        return redirect(url_for('explore'))
+        return redirect(request.referrer or url_for('explore'))
 
 @app.route('/unsave_note/<int:note_id>', methods=['POST'])
 def unsave_note(note_id):

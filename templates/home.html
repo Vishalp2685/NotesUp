@@ -18,8 +18,8 @@
             <div class="hero-content">
                 <h1 class="hero-title">Welcome to NotesUp</h1>
                 <p class="hero-subtitle">Your collaborative platform for sharing, discovering, and downloading high-quality study notes and resources.</p>
-                <form method="POST" class="hero-search-form">
-                    <input name="q" type="text" class="search-box" id="searchBox" placeholder="Search for notes or topics...">
+                <form method="GET" class="hero-search-form" action="{{(url_for('explore'))}}">
+                    <input name="q" type="text" class="search-box" id="searchBox" placeholder="Search for notes or topics..." value="{{request.args.get('q','')}}">
                     <button type="submit" class="upload-btn">Search</button>
                 </form>
             </div>
