@@ -129,7 +129,7 @@ def extract_text_from_file(file_path, word_limit=1000):
     ext = os.path.splitext(file_path)[1].lower()
     try:
         if ext == '.pdf':
-            return extract_text_pdf_with_ocr(file_path, word_limit)
+            return extract_text_pdf_random(file_path, word_limit)
         elif ext == '.docx':
             return extract_text_docx(file_path, word_limit)
         elif ext == '.pptx':

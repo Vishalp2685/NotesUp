@@ -345,6 +345,8 @@ def home():
                 search_query = sanitize_input(request.form.get('q'))
                 session['search_query'] = search_query
                 return redirect(url_for('explore'))
+            else:
+                return render_template('home.html')
     except Exception as e:
         return render_template('home.html')
 

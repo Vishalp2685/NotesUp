@@ -74,15 +74,8 @@ def upload_to_drive(file,file_name):
         return False 
     
 
-def delete_from_drive(file_path):
+def delete_from_drive(file_id):
     try:
-        # Extract file ID from the Google Drive link
-        match = re.search(r'/d/([a-zA-Z0-9_-]+)', file_path)
-        if not match:
-            raise ValueError("Invalid Google Drive file path. Cannot extract file ID.")
-
-        file_id = match.group(1)
-
         # Attempt to delete the file from Google Drive
         drive_service.files().delete(fileId=file_id).execute()
         print(f"[DELETE SUCCESS] File ID {file_id} deleted from Google Drive.")
