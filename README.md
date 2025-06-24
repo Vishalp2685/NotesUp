@@ -4,8 +4,9 @@ A collaborative platform for students to upload, search, and share academic note
 
 ## Features
 - Upload notes (PDF, DOC, PPT, etc.) with subject, branch, semester, and year fields
-- Advanced search and filtering
+- Automatic generation of concise descriptions for notes
 - Google Drive integration for file storage
+- Advanced search and filtering
 
 ## Setup Instructions
 
