@@ -9,7 +9,31 @@ import pytesseract
 import random
 import io
 
-pytesseract.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
+# Configure Tesseract path based on environment
+def configure_tesseract():
+    """Configure Tesseract OCR path based on the operating system"""
+    if platform.system() == "Windows":
+        # Windows path (for local development)
+        tesseract_path = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+        if os.path.exists(tesseract_path):
+            pytesseract.pytesseract.tesseract_cmd = tesseract_path
+        else:
+            print("Warning: Tesseract not found at expected Windows path")
+    elif platform.system() == "Linux":
+        # Linux path (for Docker container)
+        tesseract_path = shutil.which('tesseract')
+        if tesseract_path:
+            pytesseract.pytesseract.tesseract_cmd = tesseract_path
+        else:
+            print("Warning: Tesseract not found in PATH")
+    else:
+        # macOS or other systems
+        tesseract_path = shutil.which('tesseract')
+        if tesseract_path:
+            pytesseract.pytesseract.tesseract_cmd = tesseract_path
+
+# Initialize Tesseract configuration
+configure_tesseract()
 
 def clean_text(text):
     return re.sub(r'\s+', ' ', text).strip()
