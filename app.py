@@ -54,22 +54,8 @@ def sign_up():
     except Exception as e:
         flash(f'Unexpected error: {e}', 'error')
         return render_template('sign_up.html')
+    
 
-
-def download_file_from_google_drive(file_id, file_name):
-    URL = "https://drive.google.com/uc?export=download"
-    file_path = f"temp/{file_name}"
-    session = requests.Session()
-    response = session.get(URL, params={'id': file_id}, stream=True)
-    try:
-        with open(file_path, "wb") as f:
-            for chunk in response.iter_content(32768):
-                if chunk:
-                    f.write(chunk)
-        return True
-    except Exception as e:
-        print("Error while saving the file saving in temp")
-        return False
 def background_summary_worker(uploaded_by, filename, local_path,file_path):
     try:
         text = generate_summary.extract_text_from_file(local_path)
@@ -146,8 +132,6 @@ def upload():
                         # flash('No file selected', 'upload_error')
                         print('No file selected', 'upload_error')
                         return redirect(url_for('upload'))
-                    # download  the file from drive to genrate description
-                    download_file_from_google_drive
                 print('Files uploaded successfully', 'success')
                 flash('Files uploaded successfully', 'upload_success')
                 return redirect(url_for('upload'))
