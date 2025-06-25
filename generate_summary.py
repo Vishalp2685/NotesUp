@@ -8,6 +8,8 @@ from google import genai
 import pytesseract
 import random
 import io
+import platform
+import shutil
 
 # Configure Tesseract path based on environment
 def configure_tesseract():
