@@ -8,6 +8,8 @@ from google import genai
 import pytesseract
 import random
 import io
+import platform
+import shutil
 
 pytesseract.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
 
