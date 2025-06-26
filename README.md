@@ -1,64 +1,92 @@
-# Notes Sharing Platform
+# NotesUp
 
-A collaborative platform for students to upload, search, and share academic notes.
+NotesUp is a collaborative platform for students to upload, share, and explore academic notes. It features AI-generated descriptions for uploaded files, Google Drive integration, and a modern, user-friendly interface.
 
 ## Features
-- Upload notes (PDF, DOC, PPT, etc.) with subject, branch, semester, and year fields
-- Automatic generation of concise descriptions for notes
+- User registration and login
+- Upload multiple notes (PDF, DOC, DOCX, PPT, PPTX)
+- AI-generated note descriptions
 - Google Drive integration for file storage
-- Advanced search and filtering
+- Explore, search, and save notes
+- Dashboard for managing uploaded and saved notes
+- Secure password requirements
+- Dockerized deployment
 
-## Setup Instructions
+## Tech Stack
+- Python 3.12
+- Flask
+- SQLAlchemy
+- Google Drive API
+- Gunicorn
+- Docker & Docker Compose
+- HTML/CSS/JavaScript (frontend)
 
-### 1. Clone the repository
+## Getting Started
+
+### Prerequisites
+- Docker & Docker Compose
+- Google Cloud project with Drive API enabled (for file storage)
+- Python 3.12 (for local development)
+
+### Environment Variables
+Create a `.env` file in the project root with the following variables:
 ```
-git clone https://github.com/yourusername/notes-sharing-platform.git
-cd notes-sharing-platform
+SECRET_KEY=your_secret_key
+GEMINI_API_KEY=your_gemini_api_key
+DB_USER=your_db_user
+DB_PASSWORD=your_db_password
+DB_HOST=your_db_host
+DB_NAME=your_db_name
+FOLDER_ID=your_google_drive_folder_id
+GOOGLE_TYPE=service_account
+GOOGLE_PROJECT_ID=your_project_id
+GOOGLE_PRIVATE_KEY_ID=your_private_key_id
+GOOGLE_PRIVATE_KEY=your_private_key
+GOOGLE_CLIENT_EMAIL=your_client_email
+GOOGLE_CLIENT_ID=your_client_id
+GOOGLE_AUTH_URI=https://accounts.google.com/o/oauth2/auth
+GOOGLE_TOKEN_URI=https://oauth2.googleapis.com/token
+GOOGLE_AUTH_PROVIDER_X509_CERT_URL=https://www.googleapis.com/oauth2/v1/certs
+GOOGLE_CLIENT_X509_CERT_URL=your_client_x509_cert_url
+GOOGLE_UNIVERSE_DOMAIN=googleapis.com
 ```
 
-### 2. Install dependencies
-```
-pip install -r requirements.txt
-```
+### Build & Run with Docker
+1. Build and start the app:
+   ```sh
+   docker compose up --build
+   ```
+2. The app will be available at [http://localhost:8000](http://localhost:8000)
 
-### 3. Google Drive API Setup
+### Local Development (without Docker)
+1. Install dependencies:
+   ```sh
+   pip install -r requirements.txt
+   ```
+2. Set environment variables (see above).
+3. Run the app:
+   ```sh
+   python app.py
+   ```
 
-- Go to [Google Cloud Console](https://console.cloud.google.com/).
-- Create a new project (or select an existing one).
-- Enable the **Google Drive API** for your project.
-- Create a **Service Account** and download the `service_account.json` file.
-- Place the `service_account.json` file in the root directory of your project.
-- Share your target Google Drive folder with the service account email (found in the `service_account.json`).
+## Usage
+- Register a new account and log in.
+- Upload notes (max 10 files at a time, max 30MB each).
+- Explore and save notes from other users.
+- AI will generate descriptions for your notes in the background.
 
-### 4. Environment Variables
+## Security Notes
+- Passwords must be strong (min 8 chars, upper/lowercase, number, special char).
+- Uploaded files are stored in Google Drive; temp files are cleaned up after processing.
 
-- Copy `.env.example` to `.env`:
-  ```
-  cp .env.example .env
-  ```
-- Fill in your secret key and database credentials in `.env`:
-  ```
-  SECRET_KEY=your_flask_secret_key
-  DB_USER=your_db_user
-  DB_PASSWORD=your_db_password
-  DB_HOST=your_db_host
-  DB_NAME=your_db_name
-  FOLDER_ID=your_google_drive_folder_id
-  ```
+## Troubleshooting
+- If you see a warning about session cookie size, reduce what you store in the session.
+- If uploads fail, check that the `temp` directory exists and is writable.
+- For Google Drive issues, verify your service account credentials and permissions.
 
-### 5. Database Setup
+## License
+MIT License
 
-- Ensure you have a PostgreSQL database running.
-- Create the required tables (`users`, `uploaded_files`, `user_saved_notes`) as per your schema.
-- Update the `.env` file with your database credentials.
-
-### 6. Run the Application
-
-```
-python app.py
-```
-- The app will be available at `http://127.0.0.1:5000/`
-
-## Contributing
-Pull requests are welcome!
 ---
+
+**Contributions are welcome!**
