@@ -60,7 +60,7 @@ def sign_up():
     
 # Queue to hold background tasks
 job_queue = Queue()
-semaphore = Semaphore(1)  # Max 1 concurrent summaries
+semaphore = Semaphore(2)  # Max 2 concurrent summaries
 
 def queue_worker():
     while True:
@@ -69,8 +69,8 @@ def queue_worker():
             background_summary_worker(*args)
         job_queue.task_done()
 
-# Start 1 worker threads
-for _ in range(1):
+# Start 2 worker threads
+for _ in range(2):
     print("Starting background worker thread")
     Thread(target=queue_worker, daemon=True).start()
 
