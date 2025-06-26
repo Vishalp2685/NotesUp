@@ -1,4 +1,4 @@
-from flask import Flask,render_template,request,redirect,url_for,session,flash,jsonify
+from flask import Flask,render_template,request,redirect,url_for,session,flash
 import database as db
 from werkzeug.utils import secure_filename
 import os
@@ -6,7 +6,6 @@ from flask import send_from_directory,abort
 import re
 from flask import g
 import generate_summary
-import requests
 import threading
 from sqlalchemy import text as sa_text
 
@@ -53,15 +52,13 @@ def sign_up():
             return render_template('sign_up.html')
     except Exception as e:
         flash(f'Unexpected error: {e}', 'error')
-        return render_template('sign_up.html')
-    
+        return render_template('sign_up.html')    
 
 def background_summary_worker(uploaded_by, filename, local_path,file_path):
     try:
         text = generate_summary.extract_text_from_file(local_path)
         summary = generate_summary.generate_description_from_text(text)
         db.save_summary(uploaded_by,summary,file_path)
-
         os.remove(local_path)  # Clean up temp file
         print(f"[INFO] Summary generated and saved for {filename}")
     except Exception as e:
@@ -132,6 +129,7 @@ def upload():
                         # flash('No file selected', 'upload_error')
                         print('No file selected', 'upload_error')
                         return redirect(url_for('upload'))
+                    # download  the file from drive to genrate description
                 print('Files uploaded successfully', 'success')
                 flash('Files uploaded successfully', 'upload_success')
                 return redirect(url_for('upload'))

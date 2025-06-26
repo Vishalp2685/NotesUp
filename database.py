@@ -7,13 +7,24 @@ from dotenv import load_dotenv
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload,HttpError
-import re
-load_dotenv()
+import mimetypes
 
+# If running locally, load from .env
+if os.environ.get("RUNNING_IN_DOCKER") != "1":
+    from dotenv import load_dotenv
+    load_dotenv() 
+
+# Load from actual environment variables
 db_user = os.environ.get('DB_USER')
 db_password = os.environ.get('DB_PASSWORD')
 db_host = os.environ.get('DB_HOST')
 db_name = os.environ.get('DB_NAME')
+
+# Validate
+if not all([db_user, db_password, db_host, db_name]):
+    raise RuntimeError("Missing DB credentials in environment.")
+
+
 if db_user and db_password and db_host and db_name:
     DB_URL = f"postgresql+psycopg2://{db_user}:{db_password}@{db_host}:5432/{db_name}"
 else:
@@ -42,8 +53,6 @@ service_account_info = get_service_account_info_from_env()
 credentials = service_account.Credentials.from_service_account_info(
     service_account_info, scopes=SCOPES)
 drive_service = build('drive', 'v3', credentials=credentials)
-
-import mimetypes
 
 def upload_to_drive(file,file_name):
     try:
