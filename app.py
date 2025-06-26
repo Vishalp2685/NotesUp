@@ -232,7 +232,6 @@ def dashboard():
                     row_dict['uploaded_at'] = row_dict['uploaded_at'].isoformat()
                     row_dict['file_path'] = row_dict['file_path'].replace('\\','/')
                     details.append(row_dict)
-                session['details'] = details
             else:
                 session['details'] = []
             user_details = db.get_user_details(session['username'])
@@ -253,7 +252,7 @@ def dashboard():
                         if 'file_path' in note_dict:
                             note_dict['file_path'] = note_dict['file_path'].replace('\\', '/')
                         saved_notes.append(note_dict)
-            return render_template('dashboard.html', user_details=user_details, saved_notes=saved_notes)
+            return render_template('dashboard.html', user_details=user_details, saved_notes=saved_notes, details=details)
         else:
             req_form = request.form
             if 'home' in req_form:
@@ -270,7 +269,7 @@ def dashboard():
     except Exception as e:
         # flash(f'Error loading dashboard: {e}', 'error')
         print(f'Error loading dashboard: {e}')
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('dashboard', details=[], saved_notes=[], user_details={}))
 
 @app.route('/delete/<int:id>',methods = ['POST'])
 def delete(id):

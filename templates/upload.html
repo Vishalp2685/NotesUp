@@ -193,7 +193,11 @@
         function addFiles(files) {
             const fileArray = Array.from(files);
             const errors = [];
-            
+            // Limit total files to 10
+            if (selectedFiles.length + fileArray.length > 10) {
+                document.getElementById('filesError').textContent = 'You can upload a maximum of 10 files at a time.';
+                return;
+            }
             fileArray.forEach(file => {
                 const error = validateFile(file);
                 if (error) {
@@ -206,13 +210,11 @@
                     }
                 }
             });
-            
             if (errors.length > 0) {
                 document.getElementById('filesError').textContent = errors.join(', ');
             } else {
                 document.getElementById('filesError').textContent = '';
             }
-            
             updateFileList();
             updateFileInput();
         }
@@ -330,9 +332,13 @@
 
         // Form submission handler
         document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            e.preventDefault();
             if (selectedFiles.length === 0) {
-                e.preventDefault();
                 document.getElementById('filesError').textContent = 'Please select at least one file to upload.';
+                return;
+            }
+            if (selectedFiles.length > 10) {
+                document.getElementById('filesError').textContent = 'You can upload a maximum of 10 files at a time.';
                 return;
             }
             // Check if all units are selected
