@@ -16,6 +16,9 @@ app.secret_key = 'your_secret_key'
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY')
 
+# Ensure temp directory exists
+os.makedirs('temp', exist_ok=True)
+
 def add_user(first_name,last_name,branch,user_name,password):
     user = db.register_user(first_name=first_name,last_name=last_name,branch=branch,username=user_name,password=password)
     return user
