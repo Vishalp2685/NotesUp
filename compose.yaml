@@ -36,5 +36,6 @@ services:
     volumes:
       - .:/app
       - /app/__pycache__
+      - ./temp:/app/temp
     working_dir: /app
     restart: unless-stopped
