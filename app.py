@@ -6,7 +6,8 @@ from flask import send_from_directory,abort
 import re
 from flask import g
 import generate_summary
-import threading
+from queue import Queue
+from threading import Thread, Semaphore
 from sqlalchemy import text as sa_text
 
 app = Flask(__name__)
@@ -54,11 +55,21 @@ def sign_up():
         flash(f'Unexpected error: {e}', 'error')
         return render_template('sign_up.html')    
     
-semaphore = threading.Semaphore(2)  # Allow only 2 threads at a time
+# Queue to hold background tasks
+job_queue = Queue()
+semaphore = Semaphore(1)  # Max 1 concurrent summaries
 
-def safe_summary_worker(*args):
-    with semaphore:
-        background_summary_worker(*args)
+def queue_worker():
+    while True:
+        args = job_queue.get()
+        with semaphore:
+            background_summary_worker(*args)
+        job_queue.task_done()
+
+# Start 1 worker threads
+for _ in range(1):
+    print("Starting background worker thread")
+    Thread(target=queue_worker, daemon=True).start()
 
 
 def background_summary_worker(uploaded_by, filename, local_path,file_path):
@@ -112,7 +123,6 @@ def upload():
                 for idx in range(len(files)):
                     unit = request.form.get(f'unit_for_file_{idx}')
                     units.append(unit)
-                
                 for i, file in enumerate(files):
                     if file:
                         filename = secure_filename(file.filename)
@@ -130,12 +140,7 @@ def upload():
                             flash('Database error occurred while saving file data', 'upload_error')
                             return redirect(url_for('upload'))
                         if generate_summary:
-                        # Background summary generation thread
-                            thread = threading.Thread(
-                                target=safe_summary_worker,
-                                args=(session['username'], filename, temp_path,file_path)
-                            )
-                            thread.start()
+                            job_queue.put((session['username'], filename, temp_path, file_path))
                     else:
                         # flash('No file selected', 'upload_error')
                         print('No file selected', 'upload_error')
@@ -146,6 +151,7 @@ def upload():
                 return redirect(url_for('upload'))
     except Exception as e:
         # flash(f'Unexpected error: {e}', 'error')
+        print(f"[UPLOAD ERROR]: {e}")
         return redirect(url_for('upload'))
 
 @app.route('/explore', methods=['GET', 'POST'])
@@ -369,4 +375,8 @@ def unsave_note(note_id):
         return redirect(request.referrer or url_for('explore'))
 
 if __name__ == '__main__':
+    # Start 1 worker threads
+    for _ in range(1):
+        print("Starting background worker thread")
+        Thread(target=queue_worker, daemon=True).start()
     app.run()

@@ -137,7 +137,7 @@
                         <div class="card-author">👤 Uploaded by: {{ note.uploaded_by }}</div>
                         <div style="font-size: 1rem;margin-bottom: 5px; color: rgba(255, 255, 255, 0.495);">Description: </div>
                         <div class="card-preview">
-                            {{ note.description if note.description else 'No description provided.' }}
+                            {{ note.description if note.description else 'Our AI is working to generate a description for this note, please wait...' }}
                         </div>
                     </div>
                     {% endfor %}

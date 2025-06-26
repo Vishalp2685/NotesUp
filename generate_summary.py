@@ -189,7 +189,7 @@ def generate_description_from_text(text):
 
             "If the content seems to be from a question bank, return a description like: 'This is a set of question bank for [subject_name], containing important questions for practice and review.' "
 
-            "If the input appears unrelated to academic content, or contains irrelevant or non-syllabus-based material, return the same message: 'Not enough data to generate a description.' "
+            "If the input appears unrelated to academic content, or contains irrelevant or non-syllabus-based material, return the same message: 'Not enough data to generate a description or failed to extract text from the notes' "
 
             "Your only job is to generate a meaningful description or handle the input based on these instructions—do not do anything else."
         )

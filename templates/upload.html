@@ -139,7 +139,7 @@
 
 
         let selectedFiles = [];
-        const maxFileSize = 20 * 1024 * 1024; // 20MB
+        const maxFileSize = 30 * 1024 * 1024; // 20MB
         const allowedTypes = ['.pdf', '.doc', '.docx', '.ppt', '.pptx'];
         const unitOptions = [
             { value: '', label: 'Select Unit' },
@@ -149,7 +149,7 @@
             { value: '4', label: 'Unit 4' },
             { value: '5', label: 'Unit 5' },
             { value: '6', label: 'Unit 6' },
-            { value: 'multiple', label: 'Multiple Units' }
+            {value: 'multiple', label: 'Multiple Units'}
         ];
 
         // Get file icon based on extension
@@ -361,7 +361,7 @@
             const submitBtn = document.getElementById('submitBtn');
             const btnText = document.getElementById('btnText');
             submitBtn.disabled = true;
-            btnText.textContent = '⏳ Uploading...';
+            btnText.textContent = '⏳ Uploading..., please do not reload';
         });
          window.addEventListener('pageshow', function (event) {
         // Check if the page was loaded from the bfcache (back/forward cache)
