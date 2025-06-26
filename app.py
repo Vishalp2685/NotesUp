@@ -53,6 +53,13 @@ def sign_up():
     except Exception as e:
         flash(f'Unexpected error: {e}', 'error')
         return render_template('sign_up.html')    
+    
+semaphore = threading.Semaphore(2)  # Allow only 2 threads at a time
+
+def safe_summary_worker(*args):
+    with semaphore:
+        background_summary_worker(*args)
+
 
 def background_summary_worker(uploaded_by, filename, local_path,file_path):
     try:
@@ -125,7 +132,7 @@ def upload():
                         if generate_summary:
                         # Background summary generation thread
                             thread = threading.Thread(
-                                target=background_summary_worker,
+                                target=safe_summary_worker,
                                 args=(session['username'], filename, temp_path,file_path)
                             )
                             thread.start()
