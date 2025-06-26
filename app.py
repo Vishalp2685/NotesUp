@@ -56,10 +56,14 @@ def sign_up():
 
 def background_summary_worker(uploaded_by, filename, local_path,file_path):
     try:
+        print("text_generation started for",filename)
         text = generate_summary.extract_text_from_file(local_path)
+        print(f"text generation completed for {filename} and starting summary generation")
         summary = generate_summary.generate_description_from_text(text)
         db.save_summary(uploaded_by,summary,file_path)
+        print(f"Summary generated for {filename} and saving to database")
         os.remove(local_path)  # Clean up temp file
+        print(f"Temporary file {local_path} removed")
         print(f"[INFO] Summary generated and saved for {filename}")
     except Exception as e:
         print(f"[ERROR] Summary generation failed for {filename}: {e}")
