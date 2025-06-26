@@ -139,7 +139,7 @@
 
 
         let selectedFiles = [];
-        const maxFileSize = 30 * 1024 * 1024; // 30MB in bytes
+        const maxFileSize = 30 * 1024 * 1024; // 20MB
         const allowedTypes = ['.pdf', '.doc', '.docx', '.ppt', '.pptx'];
         const unitOptions = [
             { value: '', label: 'Select Unit' },
@@ -148,7 +148,8 @@
             { value: '3', label: 'Unit 3' },
             { value: '4', label: 'Unit 4' },
             { value: '5', label: 'Unit 5' },
-            { value: '6', label: 'Unit 6' }
+            { value: '6', label: 'Unit 6' },
+            {value: 'multiple', label: 'Multiple Units'}
         ];
 
         // Get file icon based on extension
@@ -190,31 +191,37 @@
 
         // Add files to selection
         function addFiles(files) {
-            const fileArray = Array.from(files);
-            const errors = [];
-            
-            fileArray.forEach(file => {
-                const error = validateFile(file);
-                if (error) {
-                    errors.push(`${file.name}: ${error}`);
-                } else {
-                    // Check if file already exists
-                    const exists = selectedFiles.some(f => f.name === file.name && f.size === file.size);
-                    if (!exists) {
-                        selectedFiles.push({ file: file, unit: '' });
-                    }
-                }
-            });
-            
-            if (errors.length > 0) {
-                document.getElementById('filesError').textContent = errors.join(', ');
-            } else {
-                document.getElementById('filesError').textContent = '';
-            }
-            
-            updateFileList();
-            updateFileInput();
+        const fileArray = Array.from(files);
+        const errors = [];
+
+        if (selectedFiles.length + fileArray.length > 10) {
+            document.getElementById('filesError').textContent = 'You can upload a maximum of 10 files.';
+            return;
         }
+
+        fileArray.forEach(file => {
+            const error = validateFile(file);
+            if (error) {
+                errors.push(`${file.name}: ${error}`);
+            } else {
+                // Check if file already exists
+                const exists = selectedFiles.some(f => f.name === file.name && f.size === file.size);
+                if (!exists) {
+                    selectedFiles.push({ file: file, unit: '' });
+                }
+            }
+        });
+
+        if (errors.length > 0) {
+            document.getElementById('filesError').textContent = errors.join(', ');
+        } else {
+            document.getElementById('filesError').textContent = '';
+        }
+
+        updateFileList();
+        updateFileInput();
+}
+
 
         // Remove file from selection
         function removeFile(index) {
@@ -360,7 +367,7 @@
             const submitBtn = document.getElementById('submitBtn');
             const btnText = document.getElementById('btnText');
             submitBtn.disabled = true;
-            btnText.textContent = '⏳ Uploading...';
+            btnText.textContent = '⏳ Uploading..., please do not reload the page';
         });
          window.addEventListener('pageshow', function (event) {
         // Check if the page was loaded from the bfcache (back/forward cache)

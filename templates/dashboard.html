@@ -17,7 +17,7 @@
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-icon">📚</div>
-                <div class="stat-number">{{session.details|length}}</div>
+                <div class="stat-number">{{details|length}}</div>
                 <div class="stat-label">Notes Uploaded</div>
             </div>
             <div class="stat-card">
@@ -39,11 +39,11 @@
                 </div>
 
                 <div class="tabs">
-                    <div class="tab active" onclick="switchTab('uploaded')">Uploaded ({{session.details|length}})</div>
+                    <div class="tab active" onclick="switchTab('uploaded')">Uploaded ({{details|length}})</div>
                     <div class="tab" onclick="switchTab('saved')">Saved ({{ saved_notes|length }})</div>
                 </div>
                 <div class="cards-grid" id="notesContainer">
-                    {% if session.details |length == 0 %}
+                    {% if details |length == 0 %}
                     <div class="empty-state">
                         <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f4dd.svg" alt="Upload Notes" class="empty-img" />
                         <div class="empty-title">You haven't uploaded any notes yet!</div>
@@ -53,8 +53,8 @@
                         </form>
                     </div>
                     {% endif %}
-                    {% if session.details |length != 0 %}
-                    {% for note in session.details %}
+                    {% if details |length != 0 %}
+                    {% for note in details %}
                     <form method="POST" action="/delete/{{note.id}}" onsubmit="event.stopPropagation();">
                     <div class="card fixed-note-card" tabindex="0" role="button" aria-label="Download {{ note.sub_name }}">
                         <div class="parent"><div class="download-icon note-action"  
@@ -118,7 +118,7 @@
                         <div class="card-author">👤 Uploaded by: {{ note.uploaded_by }}</div>
                         <div style="font-size: 1rem;margin-bottom: 5px; color: rgba(255, 255, 255, 0.495);">Description: </div>
                         <div class="card-preview">
-                            {{ note.description if note.description else 'No description provided.' }}
+                            {{ note.description if note.description else 'Our AI is working to generate a description for this note, please wait...' }}
                         </div>
                     </div>
                     </form>

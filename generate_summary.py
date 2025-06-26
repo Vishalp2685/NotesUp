@@ -11,7 +11,31 @@ import io
 import platform
 import shutil
 
-pytesseract.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
+# Configure Tesseract path based on environment
+def configure_tesseract():
+    """Configure Tesseract OCR path based on the operating system"""
+    if platform.system() == "Windows":
+        # Windows path (for local development)
+        tesseract_path = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+        if os.path.exists(tesseract_path):
+            pytesseract.pytesseract.tesseract_cmd = tesseract_path
+        else:
+            print("Warning: Tesseract not found at expected Windows path")
+    elif platform.system() == "Linux":
+        # Linux path (for Docker container)
+        tesseract_path = shutil.which('tesseract')
+        if tesseract_path:
+            pytesseract.pytesseract.tesseract_cmd = tesseract_path
+        else:
+            print("Warning: Tesseract not found in PATH")
+    else:
+        # macOS or other systems
+        tesseract_path = shutil.which('tesseract')
+        if tesseract_path:
+            pytesseract.pytesseract.tesseract_cmd = tesseract_path
+
+# Initialize Tesseract configuration
+configure_tesseract()
 
 def clean_text(text):
     return re.sub(r'\s+', ' ', text).strip()
@@ -25,10 +49,14 @@ def extract_text_pdf_with_ocr(file_path, word_limit=200):
             text = page.get_text()
             if not text.strip():
                 # OCR fallback
-                pix = page.get_pixmap(dpi=300)
-                image_bytes = pix.tobytes("png")
-                image = Image.open(io.BytesIO(image_bytes))
-                text = pytesseract.image_to_string(image)
+                try:
+                    pix = page.get_pixmap(dpi=300)
+                    image_bytes = pix.tobytes("png")
+                    image = Image.open(io.BytesIO(image_bytes))
+                    text = pytesseract.image_to_string(image)
+                except Exception as ocr_error:
+                    print(f"OCR failed on page {page_num}: {ocr_error}")
+                    continue
 
             text = clean_text(text)
             words = text.split()
@@ -73,8 +101,8 @@ def extract_text_pdf_random(file_path, word_limit=1000):
                     image_bytes = pix.tobytes("png")
                     image = Image.open(io.BytesIO(image_bytes))
                     text = pytesseract.image_to_string(image)
-                except Exception as e:
-                    print(f"OCR failed on page {i}: {e}")
+                except Exception as ocr_error:
+                    print(f"OCR failed on page {i}: {ocr_error}")
                     continue
 
                 if not text.strip():
@@ -161,7 +189,7 @@ def generate_description_from_text(text):
 
             "If the content seems to be from a question bank, return a description like: 'This is a set of question bank for [subject_name], containing important questions for practice and review.' "
 
-            "If the input appears unrelated to academic content, or contains irrelevant or non-syllabus-based material, return the same message: 'Not enough data to generate a description.' "
+            "If the input appears unrelated to academic content, or contains irrelevant or non-syllabus-based material, return the same message: 'Not enough data to generate a description or failed to extract text from the notes' "
 
             "Your only job is to generate a meaningful description or handle the input based on these instructions—do not do anything else."
         )
@@ -175,3 +203,27 @@ def generate_description_from_text(text):
         print(f"Error while generating summary: {e}")
         return ""
 
+# Test function to verify Tesseract installation
+def test_tesseract():
+    """Test if Tesseract is properly installed and accessible"""
+    try:
+        # Create a simple test image with text
+        from PIL import Image, ImageDraw, ImageFont
+        
+        # Create a simple image with text
+        img = Image.new('RGB', (200, 100), color='white')
+        draw = ImageDraw.Draw(img)
+        draw.text((10, 10), "Test OCR", fill='black')
+        
+        # Test OCR
+        text = pytesseract.image_to_string(img)
+        print(f"Tesseract test successful. Detected text: '{text.strip()}'")
+        return True
+    except Exception as e:
+        print(f"Tesseract test failed: {e}")
+        return False
+
+# Add this to your application startup
+if __name__ == "__main__":
+    print("Testing Tesseract OCR installation...")
+    test_tesseract()

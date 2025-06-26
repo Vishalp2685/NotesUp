@@ -123,7 +123,7 @@
             const password = document.querySelector('input[name="password"]').value;
             const rePass = document.querySelector('input[name="re_pass"]').value;
 
-            const passwordCriteria = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+            const passwordCriteria = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?#&])[A-Za-z\d@$!%*?&]{8,}$/;
 
             if (!passwordCriteria.test(password)) {
                 event.preventDefault();
