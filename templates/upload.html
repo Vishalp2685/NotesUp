@@ -139,7 +139,7 @@
 
 
         let selectedFiles = [];
-        const maxFileSize = 30 * 1024 * 1024; // 30MB in bytes
+        const maxFileSize = 20 * 1024 * 1024; // 20MB
         const allowedTypes = ['.pdf', '.doc', '.docx', '.ppt', '.pptx'];
         const unitOptions = [
             { value: '', label: 'Select Unit' },
@@ -148,7 +148,8 @@
             { value: '3', label: 'Unit 3' },
             { value: '4', label: 'Unit 4' },
             { value: '5', label: 'Unit 5' },
-            { value: '6', label: 'Unit 6' }
+            { value: '6', label: 'Unit 6' },
+            { value: 'multiple', label: 'Multiple Units' }
         ];
 
         // Get file icon based on extension
