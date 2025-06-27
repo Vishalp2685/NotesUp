@@ -5,19 +5,15 @@ import os
 from flask import send_from_directory,abort
 import re
 from flask import g
-import generate_summary
 from queue import Queue
-from threading import Thread, Semaphore
 from sqlalchemy import text as sa_text
+import requests
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY')
-
-# Ensure temp directory exists
-os.makedirs('temp', exist_ok=True)
 
 def add_user(first_name,last_name,branch,user_name,password):
     user = db.register_user(first_name=first_name,last_name=last_name,branch=branch,username=user_name,password=password)
@@ -58,38 +54,6 @@ def sign_up():
         flash(f'Unexpected error: {e}', 'error')
         return render_template('sign_up.html')    
     
-# Queue to hold background tasks
-job_queue = Queue()
-semaphore = Semaphore(2)  # Max 2 concurrent summaries
-
-def queue_worker():
-    while True:
-        args = job_queue.get()
-        with semaphore:
-            background_summary_worker(*args)
-        job_queue.task_done()
-
-# Start 2 worker threads
-for _ in range(2):
-    print("Starting background worker thread")
-    Thread(target=queue_worker, daemon=True).start()
-
-
-def background_summary_worker(uploaded_by, filename, local_path,file_path):
-    try:
-        print("text_generation started for",filename)
-        text = generate_summary.extract_text_from_file(local_path)
-        print(f"text generation completed for {filename} and starting summary generation")
-        summary = generate_summary.generate_description_from_text(text)
-        db.save_summary(uploaded_by,summary,file_path)
-        print(f"Summary generated for {filename} and saving to database")
-        os.remove(local_path)  # Clean up temp file
-        print(f"Temporary file {local_path} removed")
-        print(f"[INFO] Summary generated and saved for {filename}")
-    except Exception as e:
-        print(f"[ERROR] Summary generation failed for {filename}: {e}")
-
-
 
 @app.route('/upload',methods=['GET','POST'])
 def upload():
@@ -119,31 +83,22 @@ def upload():
                 desc = sanitize_input(request.form.get('description'))
                 files = request.files.getlist('files')
                 units = []
-                if desc:
-                    generate_summary = False
-                else:
-                    generate_summary =True
                 for idx in range(len(files)):
                     unit = request.form.get(f'unit_for_file_{idx}')
                     units.append(unit)
                 for i, file in enumerate(files):
                     if file:
                         filename = secure_filename(file.filename)
-                        temp_path = os.path.join("temp", filename)
-                        file.save(temp_path)
-                        with open(temp_path,'rb') as f:
-                            file_path = db.upload_to_drive(f,file_name=filename)
+                        file_path = db.upload_to_drive(file,file_name=filename)
                         print(f"filepath{file_path}")
                         if not file_path:
                             print('File upload to Google Drive failed', 'upload_error')
                             # flash('File upload to Google Drive failed') # Upload to Google Drive and get link
                             return redirect(url_for('upload'))
-                        if not db.file_data(session['username'], sub_name, branch, sem, year, desc, units[i], filename, file_path):
+                        if not db.upload_file_data(session['username'], sub_name, branch, sem, year, desc, units[i], filename, file_path):
                             print('Database error occurred', 'upload_error')
                             flash('Database error occurred while saving file data', 'upload_error')
                             return redirect(url_for('upload'))
-                        if generate_summary:
-                            job_queue.put((session['username'], filename, temp_path, file_path))
                     else:
                         # flash('No file selected', 'upload_error')
                         print('No file selected', 'upload_error')
@@ -151,6 +106,11 @@ def upload():
                     # download  the file from drive to genrate description
                 print('Files uploaded successfully', 'success')
                 flash('Files uploaded successfully', 'upload_success')
+                try:
+                    res = requests.post("https://notesup-micro-service.onrender.com/initialize_description_worker")
+                    print("Webhook response:", res.json())
+                except Exception as e:
+                    print("Failed to call summary webhook:", e)
                 return redirect(url_for('upload'))
     except Exception as e:
         # flash(f'Unexpected error: {e}', 'error')
@@ -375,10 +335,10 @@ def unsave_note(note_id):
         return redirect(request.referrer or url_for('explore'))
     except Exception as e:
         return redirect(request.referrer or url_for('explore'))
+    
+@app.route('/ping')
+def ping():
+    return "NotesUp is alive", 200
 
 if __name__ == '__main__':
-    # Start 1 worker threads
-    for _ in range(1):
-        print("Starting background worker thread")
-        Thread(target=queue_worker, daemon=True).start()
-    app.run()
+    app.run(debug=True)
